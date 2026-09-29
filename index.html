@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Lynx VBFD1">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -71,45 +71,16 @@ var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 var hintSeen = false;
 try { hintSeen = localStorage.getItem('lynxHintSeen') === '1'; } catch (e) {}
 if (isIOS && !standalone && !hintSeen) document.getElementById('hint').style.display = 'block';
-// iPhone home-screen mode: iOS sometimes reports a viewport shorter than the
-// screen, which leaves a strip at the bottom. Size the app from the physical
-// screen height instead so it always reaches the bottom edge.
-function fitToScreen() {
-  if (!isIOS || !standalone) return;
-  var wrap = document.getElementById('wrap');
-  var top = document.getElementById('statusbg').offsetHeight;
-  var portrait = window.innerHeight >= window.innerWidth;
-  var sh = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-  wrap.style.bottom = 'auto';
-  wrap.style.height = (Math.max(window.innerHeight, sh) - top) + 'px';
-}
-fitToScreen();
-window.addEventListener('resize', fitToScreen);
-window.addEventListener('orientationchange', function () { setTimeout(fitToScreen, 300); });
+// Status bar style is "black" (not translucent): measured on an iPhone, iOS
+// gives the page only screen-minus-status-bar height (793 of 852) but, when
+// translucent, draws it from the very top, leaving a 59px strip at the bottom
+// the page can't reach. Non-translucent makes iOS start the page below the
+// status bar instead, so the same height fills the screen exactly.
 
 function dismissHint() {
   document.getElementById('hint').style.display = 'none';
   try { localStorage.setItem('lynxHintSeen', '1'); } catch (e) {}
 }
-</script>
-<!-- TEMPORARY DIAGNOSTIC: magenta = space not covered by the app -->
-<style>html,body{background:#ff00ff!important}#diag{position:fixed;left:50%;top:45%;transform:translateX(-50%);z-index:50;background:rgba(0,0,0,.85);color:#fff;font:12px/1.45 monospace;padding:10px 12px;border-radius:10px;white-space:pre}</style>
-<div id="diag" onclick="this.style.display='none'">…</div>
-<div id="sabot" style="position:fixed;bottom:0;left:0;width:1px;height:env(safe-area-inset-bottom,0px);visibility:hidden"></div>
-<script>
-function diagShow(){
-  var w=document.getElementById('wrap').getBoundingClientRect();
-  var f=document.getElementById('app').getBoundingClientRect();
-  document.getElementById('diag').textContent=
-    'DIAG v3\n'+
-    'standalone '+standalone+'  ios '+isIOS+'\n'+
-    'inner '+innerWidth+'x'+innerHeight+'\n'+
-    'screen '+screen.width+'x'+screen.height+'\n'+
-    'vv '+(window.visualViewport?Math.round(visualViewport.height):'-')+'  docH '+document.documentElement.clientHeight+'\n'+
-    'safe top '+document.getElementById('statusbg').offsetHeight+' bot '+document.getElementById('sabot').offsetHeight+'\n'+
-    'wrap '+Math.round(w.top)+'-'+Math.round(w.bottom)+'  app '+Math.round(f.top)+'-'+Math.round(f.bottom);
-}
-setTimeout(diagShow,1500); window.addEventListener('resize',function(){setTimeout(diagShow,300);});
 </script>
 </body>
 </html>
