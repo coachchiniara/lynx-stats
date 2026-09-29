@@ -71,6 +71,22 @@ var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 var hintSeen = false;
 try { hintSeen = localStorage.getItem('lynxHintSeen') === '1'; } catch (e) {}
 if (isIOS && !standalone && !hintSeen) document.getElementById('hint').style.display = 'block';
+// iPhone home-screen mode: iOS sometimes reports a viewport shorter than the
+// screen, which leaves a strip at the bottom. Size the app from the physical
+// screen height instead so it always reaches the bottom edge.
+function fitToScreen() {
+  if (!isIOS || !standalone) return;
+  var wrap = document.getElementById('wrap');
+  var top = document.getElementById('statusbg').offsetHeight;
+  var portrait = window.innerHeight >= window.innerWidth;
+  var sh = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  wrap.style.bottom = 'auto';
+  wrap.style.height = (Math.max(window.innerHeight, sh) - top) + 'px';
+}
+fitToScreen();
+window.addEventListener('resize', fitToScreen);
+window.addEventListener('orientationchange', function () { setTimeout(fitToScreen, 300); });
+
 function dismissHint() {
   document.getElementById('hint').style.display = 'none';
   try { localStorage.setItem('lynxHintSeen', '1'); } catch (e) {}
