@@ -2,95 +2,2280 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lynx VBFD1">
-<meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/png" href="icon-192.png">
-<link rel="manifest" href="manifest.json">
-<title>Lynx Stats – VBFD1 (féminin)</title>
+<meta name="apple-mobile-web-app-title" content="Lynx Stats">
+<link rel="apple-touch-icon" href="https://i.imgur.com/hIQpifF.png">
+<title>Lynx Stats</title>
 <style>
-html,body{margin:0;height:100%;background:#e8e8e8;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
-/* Black strip behind the iPhone status bar. The app sits in #wrap right below
-   it; a div (unlike a bare iframe) reliably stretches to the bottom edge, and
-   any leftover space shows the app's own grey instead of a coloured band. */
-#statusbg{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#000;z-index:5}
-#wrap{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;bottom:0}
-#app{width:100%;height:100%;border:0;display:block;background:#e8e8e8}
-#splash{position:fixed;inset:0;background:#000000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:10;transition:opacity .3s ease}
-#splash.gone{opacity:0;pointer-events:none}
-#splash img{width:120px;height:120px;border-radius:26px}
-#splash .msg{color:rgba(255,255,255,.8);font-size:14px;text-align:center;padding:0 30px;min-height:20px}
-#splash button{display:none;padding:10px 22px;border-radius:20px;border:1.5px solid #fff;background:transparent;color:#fff;font-size:14px;font-weight:700}
-#hint{display:none;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));background:#1a1a1a;color:#fff;border-radius:12px;padding:12px 40px 12px 14px;font-size:13px;line-height:1.35;z-index:20;box-shadow:0 4px 14px rgba(0,0,0,.4)}
-#hint b{color:#ff5c5c}
-#hint .x{position:absolute;top:6px;right:8px;border:0;background:transparent;color:#fff;font-size:20px;padding:4px 6px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+button,.tab,.match-item,.set-btn,.stbtn,.spill,.btoggle,.cfg-icon-btn{touch-action:manipulation}
+body{background:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;color:#1a1a1a}
+.hdr{background:#cc0000;padding:12px 14px 8px;position:sticky;top:0;z-index:100;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+.hdr-brand{display:flex;align-items:center;gap:8px}
+.hdr-logo{height:32px;width:auto;flex-shrink:0;display:block}
+.hdr-title{font-size:16px;font-weight:700;color:#fff;letter-spacing:.03em;line-height:1.1}
+.hdr-season{font-size:10px;color:rgba(255,255,255,.75);font-weight:500;margin-top:1px}
+.set-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 16px;border-radius:16px;border:1.5px solid #1a1a1a;background:#fff;color:#1a1a1a;font-size:13px;font-weight:700;cursor:pointer;text-align:center;touch-action:manipulation;transition:background .15s ease,color .15s ease,box-shadow .15s ease}
+/* 'Has data' check mark sits right after the label (not in the button's
+   corner), so it stays next to S1/S2 even when buttons stretch on desktop. */
+.set-btn.has-data::after{content:'\2713';flex-shrink:0;font-size:12px;font-weight:900;line-height:1;color:#cc0000}
+.set-btn.has-data.active::after{color:#fff}
+.set-btn.active{background:linear-gradient(135deg,#e00000,#990000);color:#fff;border-color:#990000;box-shadow:0 3px 8px rgba(153,0,0,.45)}
+.tab-setbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tab-setterbar{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.setter-lbl-inline{font-size:12px;color:#777;font-weight:600;margin-right:2px}
+.stbtn{padding:5px 12px;border-radius:12px;border:1.5px solid #ddd;background:#fff;color:#666;font-size:12px;cursor:pointer;touch-action:manipulation;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stbtn.active{background:#cc0000;color:#fff;border-color:#cc0000;font-weight:700}
+/* Set bar lives in the sticky header now, so it stays reachable while
+   scrolling a long roster instead of being repeated in every tab. */
+.hdr-setbar{display:flex;gap:5px;margin-top:7px;background:rgba(0,0,0,.18);border-radius:18px;padding:3px}
+.hdr-setbar .set-btn{flex:1;padding:6px 0;border-radius:14px;border:none;background:transparent;color:rgba(255,255,255,.75);font-size:13px;font-weight:700;box-shadow:none}
+.hdr-setbar .set-btn.active{background:#1a1a1a;color:#fff;border-color:transparent;box-shadow:0 2px 5px rgba(0,0,0,.35)}
+.hdr-setbar .set-btn.has-data::after{color:#fff}
+.hdr-setbar .set-btn.has-data.active::after{color:#ff4d4d}
+.match-btn{flex:1;min-width:0;margin-left:10px;padding:8px 10px;border-radius:10px;border:1.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:600;cursor:pointer;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;touch-action:manipulation}
+.match-panel{background:#fff;border-radius:0 0 12px 12px;padding:10px;box-shadow:0 4px 10px rgba(0,0,0,.2);max-height:60vh;overflow-y:auto}
+.match-item{padding:9px 10px;border-radius:8px;margin-bottom:4px;margin-left:8px;cursor:pointer;background:#f5f5f5}
+.month-head{width:100%;display:flex;justify-content:space-between;align-items:center;padding:9px 10px;margin-bottom:4px;border:none;border-radius:8px;background:#e8e8e8;color:#444;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation;text-align:left}
+.month-head.has-current{background:#f7dcdc;color:#cc0000}
+.month-count{font-size:11px;font-weight:600;color:#999}
+.month-head.has-current .month-count{color:#cc0000}
+.match-item.active{background:#ffe5e5;border:1px solid #cc0000}
+.match-item-name{font-size:13px;font-weight:700;color:#1a1a1a}
+.tabbar{display:flex;background:#fff;border-bottom:2px solid #cc0000;position:sticky;top:88px;z-index:99;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+.tabbar::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:10px 13px;font-size:13px;font-weight:500;color:#888;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;margin-bottom:-2px}
+.tab.active{color:#cc0000;border-bottom-color:#cc0000;font-weight:700}
+.content{padding:12px}
+.section{display:none}
+.section.active{display:block}
+.pcard{background:#fff;border-radius:12px;padding:11px 10px;margin-bottom:9px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+/* Context state, in team colours: red panel vs dark-grey panel. The panel is
+   far more saturated than anything else on screen, so it reads as a distinct
+   block rather than as just another selected element. */
+.ctx-wrap{border-radius:12px;padding:8px;margin:0 -4px}
+.ctx-wrap.ctx-a{background:#f7dcdc;border:2px solid #cc0000}
+.ctx-wrap.ctx-b{background:#dcdcdc;border:2px solid #333}
+.ctx-wrap.ctx-a .pcard{border-left:5px solid #cc0000}
+.ctx-wrap.ctx-b .pcard{border-left:5px solid #333}
+.ctx-selector{position:sticky;top:var(--stickyTop,150px);z-index:60;display:flex;gap:6px;margin:-8px -8px 10px;padding:8px;border-radius:10px 10px 0 0}
+.ctx-wrap.ctx-a .ctx-selector{background:#f7dcdc}
+.ctx-wrap.ctx-b .ctx-selector{background:#dcdcdc}
+.ctx-btn{flex:1;padding:11px 6px;border-radius:9px;border:2px solid #bbb;background:#fff;color:#888;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation}
+.ctx-wrap.ctx-a .ctx-btn.active{background:#cc0000;color:#fff;border-color:#cc0000}
+.ctx-wrap.ctx-b .ctx-btn.active{background:#333;color:#fff;border-color:#333}
+.shortlist-control{margin-bottom:10px}
+.shortlist-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#444;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation}
+.shortlist-toggle .chevron{color:#999;font-size:11px}
+.shortlist-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.shortlist-chip{padding:6px 10px;border-radius:14px;border:1px solid #ddd;background:#f5f5f5;color:#666;font-size:12px;cursor:pointer;touch-action:manipulation}
+.shortlist-chip.active{background:#cc0000;color:#fff;border-color:#cc0000;font-weight:700}
+.shortlist-divider{height:4px;background:linear-gradient(to right, transparent, #cc0000 12%, #cc0000 88%, transparent);border-radius:3px;margin:18px 0;opacity:.55}
+.pname{font-size:14px;font-weight:700;color:#cc0000;margin-bottom:7px}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 6px}
+/* Below ~370px a 99px counter no longer fits three across, so fall back
+   to two columns instead of letting the buttons overlap. */
+@media (max-width:369px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+.stat-row.cols-2{grid-template-columns:repeat(2,1fr)}
+.stat-item{display:flex;flex-direction:column;align-items:center}
+.slabel{font-size:12px;font-weight:700;color:#555;margin-bottom:3px;white-space:normal;text-align:center;line-height:1.15}
+.slabel.has-tip{cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+.counter{display:flex;align-items:center;gap:4px}
+.cbtn{width:36px;height:36px;border-radius:50%;border:1px solid #ddd;background:#f0f0f0;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#444;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.cbtn.zero{opacity:.25;pointer-events:none}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.4)}100%{transform:scale(1)}}
+.cval.bump{animation:bump .22s ease-out}
+.cbtn:active{background:#cc0000;color:#fff;border-color:#cc0000}
+.cval{font-size:16px;font-weight:700;min-width:19px;text-align:center;color:#1a1a1a}
+.cval.nz{color:#cc0000}
+.cval.unsaved{color:#e08700}
+.cval.unsaved::after{content:'\26A0';font-size:11px;margin-left:3px}
+.bilan-toggle{display:flex;border:1px solid #ddd;border-radius:8px;overflow:hidden;background:#fff}
+.bilan-header{display:flex;gap:8px;align-items:stretch;margin-bottom:12px}
+.bilan-header .bilan-toggle{flex:1;margin-bottom:0}
+.bilan-refresh-btn{width:38px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#cc0000;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation}
+.bilan-refresh-btn:active{background:#f5f5f5}
+.btoggle{flex:1 1 0;min-width:0;padding:9px 4px;background:#fff;color:#888;border:none;border-right:1px solid #ddd;font-size:12px;cursor:pointer;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;touch-action:manipulation}
+.btoggle:last-child{border-right:none}
+.btoggle.active{background:#cc0000;color:#fff;font-weight:700}
+.set-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.group-matches{background:#fff;border:1px solid #e5e5e5;border-left:4px solid #cc0000;border-radius:8px;padding:8px 11px;margin-bottom:12px}
+.group-matches-count{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#cc0000}
+.group-matches-list{margin:5px 0 0;padding-left:16px;font-size:11px;color:#555;line-height:1.6}
+.spill{padding:6px 14px;border-radius:16px;border:1.5px solid #1a1a1a;background:#fff;color:#1a1a1a;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s ease,color .15s ease,box-shadow .15s ease}
+.spill.active{background:linear-gradient(135deg,#e00000,#990000);color:#fff;border-color:#990000;font-weight:700;box-shadow:0 3px 8px rgba(153,0,0,.45)}
+.phase-block{background:#fff;border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.phase-hdr{background:#cc0000;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:6px 12px}
+.ctable-wrap{overflow-x:auto}
+.ctable{border-collapse:collapse;font-size:11px;table-layout:fixed}
+.ctable th{background:#f5f5f5;color:#666;padding:5px 3px;text-align:center;font-weight:600;font-size:10px;width:36px}
+.ctable th.lc,.ctable td.lc{text-align:left;padding-left:8px;width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ctable td{padding:4px 3px;border-top:1px solid #f0f0f0;text-align:center;color:#333;overflow:hidden}
+.ctable tr.team-row td{background:#fff0f0;font-weight:700;color:#cc0000}
+.setter-divider{font-size:10px;font-weight:700;text-transform:uppercase;color:#888;background:#fafafa;padding:4px 10px;border-top:1px solid #eee}
+.atk-subbox{border:1.5px solid #ddd;border-radius:10px;margin:8px 10px;overflow:hidden;background:#fff}
+.atk-filters{padding:9px 10px;background:#fafafa;border-bottom:1px solid #eee}
+.atk-filter-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.atk-filter-row:last-child{margin-bottom:0}
+.atk-filter-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#999;min-width:58px;flex-shrink:0}
+.atk-chips{display:flex;gap:5px;flex-wrap:wrap}
+.atk-chip{padding:5px 11px;border-radius:12px;border:1px solid #ddd;background:#fff;color:#777;font-size:11px;font-weight:600;cursor:pointer;touch-action:manipulation}
+.atk-chip.active{background:#cc0000;color:#fff;border-color:#cc0000}
+.atk-empty{padding:22px 14px;text-align:center;color:#aaa;font-size:12px}
+.atk-subbox-hdr{background:#f5f5f5;color:#555;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:5px 10px;border-bottom:1px solid #e5e5e5}
+.atk-subbox-hdr.total{color:#cc0000;background:#fff0f0}
+.ep{color:#0a8a4a;font-weight:700}
+.en{color:#cc0000;font-weight:700}
+.ctable th.sortable{cursor:pointer;-webkit-user-select:none;user-select:none}
+.ctable th.sorted{color:#cc0000}
+.ctable th.sort-reset{cursor:pointer;-webkit-user-select:none;user-select:none}
+.ctable td.q-lo,.ctable tr.team-row td.q-lo{background:#fde2e2;color:#b00000;font-weight:700}
+.ctable td.q-mid,.ctable tr.team-row td.q-mid{background:#fff3c4;color:#7a5a00;font-weight:700}
+.ctable td.q-hi,.ctable tr.team-row td.q-hi{background:#dcf5e6;color:#0a6b3a;font-weight:700}
+.ocard{background:#fff;border-radius:12px;padding:10px 13px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.oname{font-size:13px;font-weight:700;color:#555;margin-bottom:6px}
+/* The two phases happen at different moments in a rally, so the card mirrors
+   that order instead of showing seven undifferentiated buttons. */
+.phase-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#aaa;margin:2px 0 5px;padding-top:6px;border-top:1px solid #eee}
+.pcard .phase-label:first-of-type,.ocard .phase-label:first-of-type{border-top:none;padding-top:0}
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#999;margin:14px 0 7px}
+.scope-note{background:#f0f0f0;border:1px solid #ddd;border-left:4px solid #cc0000;border-radius:8px;padding:8px 11px;margin-bottom:10px;font-size:11px;color:#444;line-height:1.45}
+.field-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.field-lbl{font-size:12px;color:#777;min-width:80px}
+.field-input{flex:1;border:1px solid #ddd;border-radius:8px;padding:7px 10px;font-size:14px;background:#fff;color:#1a1a1a;outline:none}
+.field-input:focus{border-color:#cc0000}
+.save-btn{background:#cc0000;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:4px}
+.save-btn:active{background:#990000}
+.add-player-btn{background:#fff;color:#cc0000;border:1.5px dashed #cc0000;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px}
+.cbtn.locked{opacity:.3;pointer-events:none}
+.lock-banner{background:#fff3cd;color:#8a6d00;border:1px solid #f0d97d;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;font-weight:600;text-align:center}
+.future-banner{background:#ffe8d6;color:#a04a00;border:1px solid #f0b980;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left}
+.future-banner-btn{flex-shrink:0;background:#a04a00;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation}
+.future-banner-btn:active{background:#7a3800}
+.cfg-icon-btn.locked-icon{color:#cc0000;border-color:#f0c0c0;background:#fff0f0}
+.err-box{padding:20px;color:#cc0000;font-size:13px;background:#fff;border-radius:12px;border:1px solid #eee}
+.loader{text-align:center;padding:40px;color:#999;font-size:14px}
+/* Rating a serve/reception and recording who won the rally happen at
+   different moments. This bar carries the first step forward so the second
+   can't be forgotten or pinned on the wrong player. */
+/* The question owns the screen while it's open: everything behind is dimmed
+   so the answer can't be missed or mis-tapped mid-rally. */
+/* Someone else moved the match to another set. Deliberately not a blocking
+   dialog: a native confirm() popping up mid-tap would steal the tap. */
+.setsync-bar{position:fixed;left:8px;right:8px;top:var(--stickyTop,150px);z-index:140;display:none;
+  align-items:center;gap:10px;background:#1a1a1a;color:#fff;border-radius:10px;padding:10px 12px;
+  box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.setsync-bar.show{display:flex}
+.setsync-label{flex:1;min-width:0;font-size:12px;font-weight:600}
+.setsync-label b{color:#ff6b6b}
+.setsync-btn{flex-shrink:0;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation;background:#cc0000;color:#fff}
+.setsync-skip{flex-shrink:0;border:none;background:transparent;color:#888;font-size:16px;padding:9px 6px;cursor:pointer;touch-action:manipulation}
+.pending-scrim{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:149;display:none}
+.pending-scrim.show{display:block}
+.pending-bar{position:fixed;left:0;right:0;bottom:0;z-index:150;background:#111;color:#fff;padding:16px 14px calc(16px + env(safe-area-inset-bottom,0px));display:none;flex-direction:column;gap:12px;border-radius:16px 16px 0 0;box-shadow:0 -6px 26px rgba(0,0,0,.5)}
+.pending-bar.show{display:flex}
+.pending-label{font-size:16px;font-weight:700;text-align:center;line-height:1.35}
+.pending-label b{color:#ff6b6b}
+.pending-actions{display:flex;gap:10px}
+.pending-btn{flex:1;padding:18px 10px;border-radius:12px;border:none;font-size:17px;font-weight:800;cursor:pointer;touch-action:manipulation}
+.pending-btn.win{background:#0a8a4a;color:#fff}
+.pending-btn.win:active{background:#076935}
+.pending-btn.lose{background:#cc0000;color:#fff}
+.pending-btn.lose:active{background:#9d0000}
+.pending-btn.skip{background:transparent;color:#888;font-size:13px;font-weight:600;padding:6px;flex:none}
+.toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:#cc0000;color:#fff;padding:7px 18px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(232,232,232,.75);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+.spinner{position:relative;width:54px;height:54px;margin:0 auto;border-radius:50%;background:#111 url(data:image/png;base64,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) center no-repeat;background-size:26px auto}
+.spinner::before{content:'';position:absolute;top:-6px;left:-6px;right:-6px;bottom:-6px;border:3px solid #ddd;border-top-color:#cc0000;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay-text{font-size:13px;color:#666;font-weight:600}
+.cfg-match-item{background:#fff;border-radius:10px;padding:9px 10px;margin-bottom:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.cfg-match-top{display:flex;align-items:center;gap:6px}
+.cfg-match-name{flex:1;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cfg-group-badge{font-size:9px;background:#f0f0f0;color:#888;padding:2px 6px;border-radius:8px;margin-left:4px;font-weight:600}
+.group-picker{display:flex;gap:5px;flex-wrap:wrap}
+.group-chip{padding:5px 11px;border-radius:12px;border:1px solid #ddd;background:#f5f5f5;color:#666;font-size:11px;cursor:pointer;touch-action:manipulation}
+.group-chip.active{background:#cc0000;color:#fff;border-color:#cc0000;font-weight:700}
+.group-picker-label{font-size:11px;color:#888;font-weight:600;margin-bottom:2px}
+.group-chip:active{background:#eee}
+.cfg-icon-btn{width:28px;height:28px;border-radius:8px;border:1px solid #ddd;background:#f5f5f5;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#444}
+.cfg-icon-btn:active{background:#eee}
+.cfg-icon-btn.danger{color:#cc0000;border-color:#f0c0c0}
+.cfg-icon-btn.confirm-btn{background:#0a8a4a;color:#fff;border-color:#0a8a4a;font-weight:700}
+.cfg-icon-btn.cancel-btn{background:#f0f0f0;color:#666;border-color:#ddd}
+.cfg-match-edit{display:none;margin-top:8px;gap:6px;flex-direction:column}
+.cfg-match-edit.open{display:flex}
+.cfg-new-match{background:#fff;border-radius:10px;padding:10px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 </style>
 </head>
 <body>
-<div id="splash">
-  <img src="icon-180.png" alt="">
-  <div class="msg" id="msg">Chargement…</div>
-  <button id="retry" onclick="location.reload()">Réessayer</button>
+
+<div class="hdr" id="hdr">
+  <div class="hdr-top">
+    <div class="hdr-brand">
+<img class="hdr-logo" src="data:image/png;base64,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" alt="Lynx" />
+      <div>
+        <div class="hdr-title">LYNX STATS</div>
+        <div class="hdr-season">Saison 26-27</div>
+      </div>
+    </div>
+    <button class="match-btn" id="matchBtn">Chargement...</button>
+  </div>
+  <div class="hdr-setbar" id="hdrSetBar"></div>
+  <div class="match-panel" id="matchPanel" style="display:none">
+    <div id="matchList"></div>
+  </div>
 </div>
-<div id="statusbg"></div>
-<div id="wrap"><iframe id="app" title="Lynx Stats – VBFD1 (féminin)"></iframe></div>
-<div id="hint">
-  Pour installer l'app : touche <b>Partager</b> puis <b>Sur l'écran d'accueil</b>.
-  <button class="x" onclick="dismissHint()">×</button>
+
+<div class="tabbar">
+  <div class="tab active" data-tab="atqCombo">Attaque</div>
+  <div class="tab" data-tab="recep">Reception</div>
+  <div class="tab" data-tab="service">Service</div>
+  <div class="tab" data-tab="bloc">Bloc</div>
+  <div class="tab" data-tab="opp">Rec Adv</div>
+  <div class="tab" data-tab="bilan">Bilan</div>
+  <div class="tab" data-tab="cfg">Config</div>
 </div>
-<script src="config.js"></script>
+
+<div class="content">
+  <div id="atqCombo" class="section active"><div class="loader"><div class="spinner" style="margin:0 auto 10px"></div>Chargement...</div></div>
+  <div id="recep" class="section"></div>
+  <div id="service" class="section"></div>
+  <div id="bloc" class="section"></div>
+  <div id="opp" class="section"></div>
+  <div id="bilan" class="section"></div>
+  <div id="cfg" class="section"></div>
+</div>
+<div class="setsync-bar" id="setSyncBar"></div>
+<div class="pending-scrim" id="pendingScrim"></div>
+<div class="pending-bar" id="pendingBar"></div>
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-overlay-text">Chargement...</div>
+</div>
+
 <script>
-var APP_URL = window.APP_URL || '';
+// Injected by GS template
+var PLAYERS = <?!= playersJson ?>;
+var OPP_DEFAULT_LABELS = <?!= oppLabelsJson ?>;
+var MATCH_GROUPS = <?!= matchGroupsJson ?>;
+var LEAGUE_SCHEDULE = <?!= leagueScheduleJson ?>;
+var RECEP_TYPES = <?!= recepTypesJson ?>;
+var OPP_ROSTER_DEFAULT = 6;
+var OPP_ROSTER_MAX = 15;
+var APP_VERSION = 'icon-fix-2026-08-27a';
 
-var splash = document.getElementById('splash');
-var msg = document.getElementById('msg');
-var frame = document.getElementById('app');
+var currentMatchId = null, matchesCache = [];
+var currentSet=1, currentTab='atqCombo', currentSetter=0, stats=null, allSetsCache=null;
+var bilanMode='game', bilanSet=1;
+var groupsCache = null, selectedGroup = null, groupDataCache = {};
+var setProgress = {}; // {1: true, 2: false, ...} which sets have data for the current match
+var knownDataVersion = -1; // server-side data version we last synced with
+var deleteArmed = null;
+var editOpenId = null;
+var oppExtraCount = 0; // extra opponent slots manually revealed beyond the dynamic minimum
+var currentMatchLocked = false;
 
-if (APP_URL.indexOf('script.google.com') === -1) {
-  msg.textContent = "URL de l'app pas encore configurée.";
-} else {
-  frame.addEventListener('load', function () { splash.classList.add('gone'); });
-  frame.src = APP_URL;
-  // Slow gym Wi-Fi: after a while, offer a reload instead of an endless spinner.
-  setTimeout(function () {
-    if (splash.classList.contains('gone')) return;
-    msg.textContent = 'Ça prend du temps… vérifie ta connexion.';
-    document.getElementById('retry').style.display = 'inline-block';
-  }, 20000);
+var TABDEFS = {
+  recep:   {keys:['r3','r2','r1','rErr'],                labels:['3','2','1','Err'],          atk:false},
+  service: {keys:['s0','s1','s2','s3','sErr'], labels:['Ace (0)','1','2','3','Err (4)'], atk:false},
+  bloc:    {keys:['blSolo','blAssist','blP','blM','blErr'],labels:['Solo','Ast','BL+','BL-','Err'],atk:false}
+};
+
+// ---- EVENT DELEGATION (no inline onclick) ----
+document.addEventListener('click', function(e) {
+  var t = e.target;
+  if (t.dataset.tooltip) { showToast(t.dataset.tooltip); return; }
+  var sortReset = t.closest ? t.closest('[data-sort-reset]') : null;
+  if (sortReset) { delete bilanSort[sortReset.dataset.sortReset]; renderBilan(); return; }
+  var sortTh = t.closest ? t.closest('[data-sort-t]') : null;
+  if (sortTh) { cycleBilanSort(sortTh.dataset.sortT, parseInt(sortTh.dataset.sortC)); return; }
+  if (t.dataset.comboRow) { comboRow = t.dataset.comboRow; staleTabs.atqCombo = false; renderPlayerTab('atqCombo'); return; }
+  if (t.dataset.recepType !== undefined) { recepTypeIdx = parseInt(t.dataset.recepType); staleTabs.recep = false; renderPlayerTab('recep'); return; }
+  if (t.id === 'matchBtn')          { toggleMatchPanel(); return; }
+  if (t.closest) {
+    var mh = t.closest('[data-toggle-month]');
+    if (mh) {
+      var lbl = mh.dataset.toggleMonth;
+      openMonths[lbl] = !openMonths[lbl];
+      renderMatchList();
+      return;
+    }
+    var mi = t.closest('[data-select-match]');
+    if (mi) { selectMatch(mi.dataset.matchId); return; }
+  }
+  if (t.dataset.selectMatch !== undefined) { selectMatch(t.dataset.matchId); return; }
+  if (t.dataset.set)                { switchSet(parseInt(t.dataset.set)); return; }
+  if (t.dataset.setter !== undefined){ switchSetter(parseInt(t.dataset.setter)); return; }
+  if (t.dataset.tab)                { switchTab(t.dataset.tab); return; }
+  if (t.dataset.adj !== undefined)  { if (currentMatchLocked) { showToast('Match verrouille'); return; } var d=t.dataset; adj(parseInt(d.pi),d.key,d.btab,parseInt(d.ki),parseInt(d.adj)); return; }
+  if (t.dataset.toggleShortlistPanel !== undefined) { var tb=t.dataset.toggleShortlistPanel; shortlistPanelOpen[tb] = !shortlistPanelOpen[tb]; staleTabs[tb] = false; renderPlayerTab(tb); return; }
+  if (t.dataset.toggleShortlistPlayer !== undefined) { var pi=t.dataset.toggleShortlistPlayer, tb=t.dataset.toggleShortlistTab; if(!shortlist[tb])shortlist[tb]={}; shortlist[tb][pi]=!shortlist[tb][pi]; staleTabs[tb] = false; renderPlayerTab(tb); return; }
+  if (t.dataset.adjOpp !== undefined){ if (currentMatchLocked) { showToast('Match verrouille'); return; } var d=t.dataset; adjOpp(parseInt(d.oi),d.key,parseInt(d.ki),parseInt(d.adjOpp)); return; }
+  if (t.dataset.bilanMode)          { resetBilanSort(); setBilanMode(t.dataset.bilanMode); return; }
+  if (t.dataset.bilanSet)           { resetBilanSort(); setBilanSet(parseInt(t.dataset.bilanSet)); return; }
+  if (t.dataset.bilanGroup)         { resetBilanSort(); setBilanGroup(t.dataset.bilanGroup); return; }
+  if (t.dataset.atkRow)             { resetBilanSort(); atkFilterRow = t.dataset.atkRow; renderBilan(); return; }
+  if (t.dataset.atkSetter !== undefined) { resetBilanSort(); atkFilterSetter = parseInt(t.dataset.atkSetter); renderBilan(); return; }
+  if (t.dataset.recepFilter !== undefined) { resetBilanSort(); recepFilterType = parseInt(t.dataset.recepFilter); renderBilan(); return; }
+  if (t.id === 'btnRefreshBilan')   { refreshBilan(); return; }
+  if (t.id === 'btnSaveSetters')    { saveCfgSetters(); return; }
+  if (t.id === 'btnSaveOppLabels')  { saveCfgOppLabels(); return; }
+  if (t.id === 'btnRetry')          { loadStats(); return; }
+  if (t.id === 'btnSeedLeague')     { seedLeague(); return; }
+  if (t.id === 'btnCreateMatch')    { createMatchFromConfig(); return; }
+  if (t.id === 'btnAddOppPlayer')   { addOppPlayer(); return; }
+  if (t.id === 'pendWin')  { resolvePendingPoint(true);  return; }
+  if (t.id === 'pendLose') { resolvePendingPoint(false); return; }
+  if (t.id === 'pendSkip') { clearPendingPoint(); return; }
+  if (t.id === 'setSyncGo')   { acceptSetChange(); return; }
+  if (t.id === 'setSyncSkip') { dismissSetChange(); return; }
+  if (t.id === 'btnDismissFutureWarn') { futureWarnDismissedFor = currentMatchId; renderAll(); return; }
+  if (t.dataset.moveUp !== undefined)   { moveMatch(t.dataset.moveUp, -1); return; }
+  if (t.dataset.moveDown !== undefined) { moveMatch(t.dataset.moveDown, 1); return; }
+  if (t.dataset.editMatch !== undefined){ toggleEditMatch(t.dataset.editMatch); return; }
+  if (t.dataset.saveEdit !== undefined) { saveEditMatch(t.dataset.saveEdit); return; }
+  if (t.dataset.pickGroup !== undefined) {
+    var inp = document.getElementById('editGroup_'+t.dataset.pickGroupTarget);
+    if (inp) inp.value = t.dataset.pickGroup;
+    var picker = t.parentNode;
+    picker.querySelectorAll('.group-chip').forEach(function(c){ c.classList.remove('active'); });
+    t.classList.add('active');
+    return;
+  }
+  if (t.dataset.delMatch !== undefined) { handleDeleteClick(t.dataset.delMatch); return; }
+  if (t.dataset.confirmDelete !== undefined) { confirmDeleteMatch(t.dataset.confirmDelete); return; }
+  if (t.dataset.cancelDelete !== undefined) { deleteArmed = null; renderCfg(); return; }
+  if (t.dataset.toggleLock !== undefined) { toggleMatchLock(t.dataset.toggleLock); return; }
+  var panel = document.getElementById('matchPanel');
+  if (panel.style.display !== 'none' && !panel.contains(t) && t.id !== 'matchBtn') {
+    panel.style.display = 'none';
+  }
+});
+
+// ---- OPPONENT ROSTER SIZE ----
+function oppVisibleCount(d) {
+  var n = OPP_ROSTER_DEFAULT;
+  if (d) {
+    for (var i = OPP_ROSTER_DEFAULT; i < OPP_ROSTER_MAX; i++) {
+      var hasStat = d.opp[i] && (d.opp[i].r3+d.opp[i].r2+d.opp[i].r1+d.opp[i].rErr+d.opp[i].ptGagne+d.opp[i].ptPerdu) > 0;
+      var hasLabel = d.oppLabels && d.oppLabels[i] && d.oppLabels[i].trim() !== '';
+      if (hasStat || hasLabel) n = i+1;
+    }
+  }
+  return Math.min(OPP_ROSTER_MAX, Math.max(n, OPP_ROSTER_DEFAULT + oppExtraCount));
+}
+function addOppPlayer() {
+  var cur = oppVisibleCount(stats);
+  if (cur >= OPP_ROSTER_MAX) { showToast('Maximum atteint'); return; }
+  oppExtraCount = (cur + 1) - OPP_ROSTER_DEFAULT;
+  if (currentTab === 'opp') renderOpp();
+  if (currentTab === 'cfg') renderCfg();
 }
 
-// In plain Safari (not launched from the home screen), show a one-time
-// install tip on iPhone.
-var standalone = window.navigator.standalone === true ||
-  (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-var hintSeen = false;
-try { hintSeen = localStorage.getItem('lynxHintSeen') === '1'; } catch (e) {}
-if (isIOS && !standalone && !hintSeen) document.getElementById('hint').style.display = 'block';
-// iPhone home-screen mode: iOS sometimes reports a viewport shorter than the
-// screen, which leaves a strip at the bottom. Size the app from the physical
-// screen height instead so it always reaches the bottom edge.
-function fitToScreen() {
-  if (!isIOS || !standalone) return;
-  var wrap = document.getElementById('wrap');
-  var top = document.getElementById('statusbg').offsetHeight;
-  var portrait = window.innerHeight >= window.innerWidth;
-  var sh = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-  wrap.style.bottom = 'auto';
-  wrap.style.height = (Math.max(window.innerHeight, sh) - top) + 'px';
+// ---- MATCH MANAGEMENT (header selection) ----
+function loadMatches(cb) {
+  google.script.run
+    .withSuccessHandler(function(list) { onMatchesLoaded(list); if (cb) cb(); })
+    .withFailureHandler(function(e) {
+      showToast('Erreur matchs: '+(e&&e.message?e.message:e));
+      // Still run the callback: callers use it to hide the loading overlay,
+      // so skipping it would leave the spinner up permanently.
+      if (cb) cb();
+    })
+    .listMatches();
 }
-fitToScreen();
-window.addEventListener('resize', fitToScreen);
-window.addEventListener('orientationchange', function () { setTimeout(fitToScreen, 300); });
+function onMatchesLoaded(list) {
+  matchesCache = list || [];
+  if (matchesCache.length === 0) {
+    google.script.run
+      .withSuccessHandler(function(m) { matchesCache = [m]; currentMatchId = m.id; afterMatchReady(); })
+      .withFailureHandler(function(e) { showToast('Erreur creation match: '+e.message); })
+      .createMatch('Match 1');
+    return;
+  }
+  if (!currentMatchId || !matchesCache.some(function(m){return m.id===currentMatchId;})) {
+    currentMatchId = matchesCache[0].id;
+  }
+  afterMatchReady();
+}
+function afterMatchReady() {
+  maybePromptTodayMatch(); // best-effort, never blocks normal startup on failure
+  updateCurrentMatchLocked();
+  updateMatchBtnLabel();
+  loadStats();
+  loadSetProgress();
+}
 
-function dismissHint() {
-  document.getElementById('hint').style.display = 'none';
-  try { localStorage.setItem('lynxHintSeen', '1'); } catch (e) {}
+// Nice-to-have: if today's date matches a game day in LEAGUE_SCHEDULE and
+// that match isn't already selected, offer once (per day, per browser) to
+// jump straight to it. Wrapped defensively — any failure here is silent and
+// never affects the normal app startup.
+var FR_MONTHS_ABBR = ["janv","fev","mars","avr","mai","juin","juil","aout","sept","oct","nov","dec"];
+
+// ---- FUTURE-MATCH WARNING ----
+// Purely advisory: it never blocks entry. With a full season of matches
+// pre-created, it's easy to have the wrong one selected; this catches that
+// without ever locking anyone out of the game they're actually recording.
+var FR_MONTH_LOOKUP = {
+  'janv':0,'janvier':0,'jan':0,
+  'fev':1,'fevr':1,'fevrier':1,
+  'mars':2,
+  'avr':3,'avril':3,
+  'mai':4,
+  'juin':5,
+  'juil':6,'juillet':6,
+  'aout':7,
+  'sept':8,'sep':8,'septembre':8,
+  'oct':9,'octobre':9,
+  'nov':10,'novembre':10,
+  'dec':11,'decembre':11
+};
+
+function stripAccentsClient(s) {
+  return String(s)
+    .replace(/[\u00e0\u00e2\u00e4]/g,'a')
+    .replace(/[\u00e9\u00e8\u00ea\u00eb]/g,'e')
+    .replace(/[\u00ee\u00ef]/g,'i')
+    .replace(/[\u00f4\u00f6]/g,'o')
+    .replace(/[\u00f9\u00fb\u00fc]/g,'u')
+    .replace(/[\u00e7]/g,'c');
 }
+
+// Resolves "23 oct ..." to a real Date. The year isn't in the name, so we try
+// last/this/next year and keep whichever lands closest to today — no
+// season-boundary special-casing needed.
+function parseMatchDate(name) {
+  try {
+    var s = stripAccentsClient(String(name).trim().toLowerCase());
+    var m = s.match(/^(\d{1,2})\s+([a-z]+)/);
+    if (!m) return null;
+    var day = parseInt(m[1], 10);
+    if (!(day >= 1 && day <= 31)) return null;
+    var mo = FR_MONTH_LOOKUP[m[2]];
+    if (mo === undefined) return null;
+    var today = new Date();
+    var best = null, bestDiff = Infinity;
+    for (var dy = -1; dy <= 1; dy++) {
+      var cand = new Date(today.getFullYear() + dy, mo, day);
+      var diff = Math.abs(cand.getTime() - today.getTime());
+      if (diff < bestDiff) { bestDiff = diff; best = cand; }
+    }
+    return best;
+  } catch(e) { return null; }
+}
+
+// Dismissal is per-match and session-only: confirming once stops the nagging
+// across all tabs, but picking a different future match warns again, and a
+// page reload restores the safety net.
+var futureWarnDismissedFor = null;
+
+function futureMatchWarningHtml() {
+  try {
+    if (currentMatchId && currentMatchId === futureWarnDismissedFor) return '';
+    var m = matchesCache.filter(function(x){ return x.id === currentMatchId; })[0];
+    if (!m) return '';
+    var d = parseMatchDate(m.name);
+    if (!d) return ''; // undated or unparseable name — stay silent
+    var today = new Date();
+    today.setHours(0,0,0,0);
+    d.setHours(0,0,0,0);
+    if (d.getTime() <= today.getTime()) return '';
+    var days = Math.round((d.getTime() - today.getTime()) / 86400000);
+    return '<div class="future-banner">' +
+           '<span>\u26a0 Match prevu dans ' + days + ' jour' + (days > 1 ? 's' : '') +
+           ' — es-tu au bon match?</span>' +
+           '<button class="future-banner-btn" id="btnDismissFutureWarn">Oui</button>' +
+           '</div>';
+  } catch(e) { return ''; }
+}
+// Pre-fills the new-match field with today's date, so creating a match
+// mid-tournament is just typing the opponent name.
+function todayMatchPrefix() {
+  try {
+    var d = new Date();
+    return d.getDate() + ' ' + FR_MONTHS_ABBR[d.getMonth()] + ' vs ';
+  } catch(e) { return ''; } // fall back to an empty field rather than breaking Config
+}
+function isDatedToday(match) {
+  if (!match) return false;
+  var d = parseMatchDate(match.name);
+  if (!d) return false;
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  d.setHours(0,0,0,0);
+  return d.getTime() === today.getTime();
+}
+
+function findTodayMatch() {
+  try {
+    var today = new Date();
+    today.setHours(0,0,0,0);
+    // Scan the real match list, not the hard-coded league schedule: a match
+    // created by hand (tournament, exhibition) should be offered too. Reuses
+    // the same parser as the future-match banner, so abbreviations, full month
+    // names and accents all work.
+    for (var i = 0; i < matchesCache.length; i++) {
+      var d = parseMatchDate(matchesCache[i].name);
+      if (!d) continue;
+      d.setHours(0,0,0,0);
+      if (d.getTime() === today.getTime()) return matchesCache[i];
+    }
+  } catch(e) {}
+  return null;
+}
+function alreadyPromptedToday() {
+  try { return localStorage.getItem('lynxTodayPrompted') === new Date().toDateString(); }
+  catch(e) { return false; }
+}
+function markPromptedToday() {
+  try { localStorage.setItem('lynxTodayPrompted', new Date().toDateString()); } catch(e) {}
+}
+function maybePromptTodayMatch() {
+  try {
+    if (alreadyPromptedToday()) return;
+    var current = matchesCache.filter(function(m){ return m.id === currentMatchId; })[0];
+    if (isDatedToday(current)) return; // already on a match played today
+    var todayMatch = findTodayMatch();
+    if (!todayMatch || todayMatch.id === currentMatchId) return;
+    markPromptedToday();
+    if (confirm('Match aujourd\'hui : ' + todayMatch.name + '\n\nVeux-tu y aller?')) {
+      applyMatchSwitch(todayMatch.id);
+    }
+  } catch(e) {}
+}
+function loadSetProgress() {
+  var matchAtFetch = currentMatchId;
+  google.script.run
+    .withSuccessHandler(function(p) {
+      if (matchAtFetch !== currentMatchId) return; // user switched match meanwhile
+      setProgress = p || {};
+      updateHeaderSetBar();
+      renderAll();
+      if (currentTab === 'opp') renderOpp();
+    })
+    .withFailureHandler(function() {})
+    .getMatchSetProgress(currentMatchId);
+}
+function updateCurrentMatchLocked() {
+  var m = matchesCache.filter(function(x){return x.id===currentMatchId;})[0];
+  currentMatchLocked = !!(m && m.locked);
+}
+function updateMatchBtnLabel() {
+  var btn = document.getElementById('matchBtn');
+  var m = matchesCache.filter(function(x){return x.id===currentMatchId;})[0];
+  if (btn) btn.textContent = (m ? (m.locked ? '🔒 ' : '') + m.name : 'Match');
+}
+function toggleMatchPanel() {
+  var panel = document.getElementById('matchPanel');
+  var isHidden = panel.style.display === 'none';
+  panel.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) renderMatchList();
+}
+var FR_MONTHS_FULL = ['Janvier','Fevrier','Mars','Avril','Mai','Juin',
+                      'Juillet','Aout','Septembre','Octobre','Novembre','Decembre'];
+var openMonths = null;   // null until first render; then {label: true/false}
+
+// A full season is 20+ matches in one flat list. Grouping by month keeps the
+// picker short without asking anyone to tag anything — the date is already in
+// every match name. Tags stay reserved for analysis in the Bilan.
+function monthLabelFor(match) {
+  var d = parseMatchDate(match.name);
+  return d ? FR_MONTHS_FULL[d.getMonth()] : 'Autres';
+}
+
+function renderMatchList() {
+  var el = document.getElementById('matchList');
+
+  // Preserve the existing order, just bucket it.
+  var groups = [], index = {};
+  matchesCache.forEach(function(m) {
+    var lbl = monthLabelFor(m);
+    if (!(lbl in index)) { index[lbl] = groups.length; groups.push({ label: lbl, items: [] }); }
+    groups[index[lbl]].items.push(m);
+  });
+
+  // First time through, open only the group holding the current match.
+  if (openMonths === null) {
+    openMonths = {};
+    var cur = matchesCache.filter(function(m){ return m.id === currentMatchId; })[0];
+    var curLabel = cur ? monthLabelFor(cur) : null;
+    groups.forEach(function(g){ openMonths[g.label] = (g.label === curLabel); });
+  }
+
+  var h = '';
+  groups.forEach(function(g) {
+    var open = !!openMonths[g.label];
+    var hasCurrent = g.items.some(function(m){ return m.id === currentMatchId; });
+    h += '<button class="month-head'+(hasCurrent?' has-current':'')+'" data-toggle-month="'+g.label+'">' +
+         '<span>'+g.label+'</span>' +
+         '<span class="month-count">'+g.items.length+' '+(open?'\u25b4':'\u25be')+'</span></button>';
+    if (!open) return;
+    g.items.forEach(function(m) {
+      h += '<div class="match-item'+(m.id===currentMatchId?' active':'')+'" data-match-id="'+m.id+'" data-select-match>' +
+           '<span class="match-item-name">'+(m.locked?'\ud83d\udd12 ':'')+m.name+'</span></div>';
+    });
+  });
+  el.innerHTML = h;
+}
+// Everything a match change entails. Shared so the today-match prompt and the
+// picker can never diverge — an earlier version of the prompt set the id
+// without reloading, leaving one match's numbers on screen under another
+// match's name.
+function applyMatchSwitch(id) {
+  currentMatchId = id;
+  openMonths = null;   // re-open on whichever month now holds the current match
+  seenActiveSetTs = 0;
+  dismissSetChange();
+  clearBilanCaches();
+  oppExtraCount = 0;
+  setProgress = {};
+  clearPendingPoint();
+  updateCurrentMatchLocked();
+  updateMatchBtnLabel();
+  updateHeaderSetBar();
+  loadStats();
+  loadSetProgress();
+  // The caches we just emptied are what the Bilan renders from; without this
+  // it would sit on its loader forever.
+  if (currentTab === 'bilan') setBilanMode(bilanMode);
+}
+
+function selectMatch(id) {
+  if (id === currentMatchId) { document.getElementById('matchPanel').style.display = 'none'; return; }
+  var target = matchesCache.filter(function(x){ return x.id === id; })[0];
+  if (!confirm('Changer pour le match :\n' + (target ? target.name : id) + ' ?')) return;
+  document.getElementById('matchPanel').style.display = 'none';
+  applyMatchSwitch(id);
+}
+
+// ---- NAVIGATION ----
+function switchSet(n) {
+  if (n === currentSet) return;
+  if (!confirm('Changer pour le Set '+n+' ?')) return;
+  currentSet = n;
+  dismissSetChange();          // our own move supersedes any pending offer
+  updateHeaderSetBar();
+  loadStats();
+  try {
+    google.script.run.withFailureHandler(function(){}).setActiveSet(currentMatchId, n);
+  } catch(e) {}
+}
+function switchSetter(n) {
+  if (n === currentSetter) return;
+  var names = (stats && stats.setters) || ['Passeure A','Passeure B','Passeure C'];
+  var label = names[n] || ('Passeure '+(n+1));
+  if (!confirm('Attribuer les prochaines attaques a '+label+' ?')) return;
+  currentSetter = n;
+  document.querySelectorAll('.stbtn').forEach(function(b) {
+    b.classList.toggle('active', parseInt(b.dataset.setter) === n);
+  });
+}
+// The set bar is rendered once into the sticky header and refreshed in place,
+// rather than being rebuilt inside every stat tab.
+function updateHeaderSetBar() {
+  var el = document.getElementById('hdrSetBar');
+  if (!el) return;
+  // Bilan carries its own set selector, so the header one would be a confusing
+  // duplicate there.
+  if (currentTab === 'bilan') {
+    el.style.display = 'none';
+    updateTabbarOffset();
+    return;
+  }
+  el.style.display = 'flex';
+  var h = '';
+  for (var s = 1; s <= 5; s++) {
+    var cls = 'set-btn' + (currentSet===s?' active':'') + (setProgress[s]?' has-data':'');
+    h += '<button class="'+cls+'" data-set="'+s+'">S'+s+'</button>';
+  }
+  el.innerHTML = h;
+  updateTabbarOffset();
+}
+function renderSetterBarHtml() {
+  var names = (stats && stats.setters) || ['Passeure A','Passeure B','Passeure C'];
+  var h = '<div class="tab-setterbar"><span class="setter-lbl-inline">Passeure:</span>';
+  for (var i = 0; i < 3; i++) {
+    var label = (names[i] || ('P'+(i+1)));
+    h += '<button class="stbtn'+(currentSetter===i?' active':'')+'" data-setter="'+i+'">'+label+'</button>';
+  }
+  return h + '</div>';
+}
+var configUnlocked = false;
+function switchTab(tab) {
+  if (tab === 'cfg' && !configUnlocked) {
+    var pwd = prompt('Mot de passe pour Config:');
+    if (pwd === null) return; // cancelled — stay on current tab
+    if (pwd.trim().toLowerCase() !== 'lynx') { showToast('Mot de passe incorrect'); return; }
+    configUnlocked = true;
+  }
+  if (tab !== currentTab) { clearPendingPoint(); resetBilanSort(); }
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab===tab); });
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.toggle('active', s.id===tab); });
+  updateHeaderSetBar();
+  ensureTabFresh(tab);
+  if (tab === 'bilan') {
+    setBilanMode(bilanMode);   // fetches merged data when opening on 'game'
+    refreshBilanIfStale();
+  }
+  if (tab==='opp' && stats) renderOpp();
+  if (tab==='cfg') renderCfg();
+}
+
+// ---- LOAD ----
+var firstLoadDone = false;
+function showLoading() {
+  if (!firstLoadDone) return; // inline loader already covers startup
+  document.getElementById('loadingOverlay').style.display = 'flex';
+}
+function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+function loadStats() {
+  showLoading();
+  google.script.run
+    .withSuccessHandler(onStatsLoaded)
+    .withFailureHandler(onStatsError)
+    .readAll(currentMatchId, currentSet);
+}
+function onStatsLoaded(d) {
+  firstLoadDone = true;
+  hideLoading();
+  if (!d) { onStatsError({message:'Reponse vide'}); return; }
+  stats = d;
+  updateHeaderSetBar();
+  renderAll();
+  // Opponent names are stored per match, so the Config fields must follow the
+  // match that was just loaded. Without this, switching match while on Config
+  // leaves the previous roster on screen and saving would overwrite the new
+  // match with it.
+  if (currentTab === 'cfg') renderCfg();
+}
+function onStatsError(e) {
+  hideLoading();
+  document.getElementById('atqCombo').innerHTML =
+    '<div class="err-box"><b>Erreur:</b> ' + (e.message||String(e)) +
+    '<br><br><button id="btnRetry" class="save-btn">Reessayer</button></div>';
+}
+var STAT_TABS = ['atqCombo','recep','service','bloc'];
+var staleTabs = {};
+
+// Rebuilding all four stat tabs meant ~320 counters on every data load, when
+// only one is on screen. The hidden ones are flagged instead and drawn on
+// entry, which keeps the work proportional to what's visible.
+function renderAll() {
+  STAT_TABS.forEach(function(t) {
+    if (t === currentTab) { renderPlayerTab(t); staleTabs[t] = false; }
+    else staleTabs[t] = true;
+  });
+  if (currentTab === 'bilan') renderBilan();
+  if (currentTab === 'opp') renderOpp();
+}
+
+// Draw a stat tab if it missed the last data load.
+function ensureTabFresh(tab) {
+  if (staleTabs[tab]) { renderPlayerTab(tab); staleTabs[tab] = false; }
+}
+
+// ---- PLAYER TAB ----
+function renderPlayerTab(tab) {
+  if (!stats) return;
+  var def = tabDef(tab), el = document.getElementById(tab);
+  if (!el || !def) return;
+  var h = currentMatchLocked ? '<div class="lock-banner">\ud83d\udd12 Match verrouille — lecture seule</div>' : '';
+  h += futureMatchWarningHtml();
+
+  // Sets live in the sticky header. What remains here is ordered by how often
+  // it's touched: setters occasionally, roster shortlist once per rotation,
+  // and the context switch constantly — so it sits closest to the taps.
+  if (def.atk) h += renderSetterBarHtml();
+  h += renderShortlistControl(tab);
+
+  // Context-driven tabs wrap their content in a tinted panel. The tint, the
+  // selector and the card accents all encode the same state, so it stays
+  // obvious at a glance which bucket taps are landing in.
+  var ctxCls = '', ctxSel = '';
+  if (tab === 'atqCombo') {
+    ctxCls = (comboRow === 'FR') ? 'ctx-a' : 'ctx-b';
+    ctxSel = renderComboRowSelector();
+  } else if (tab === 'recep') {
+    ctxCls = (recepTypeIdx === 0) ? 'ctx-a' : 'ctx-b';
+    ctxSel = renderRecepTypeSelector();
+  }
+  if (ctxCls) h += '<div class="ctx-wrap ' + ctxCls + '">' + ctxSel;
+
+  var sl = shortlist[tab] || {};
+  var shortIdx = [], restIdx = [];
+  for (var pi = 0; pi < PLAYERS.length; pi++) {
+    if (sl[pi]) shortIdx.push(pi); else restIdx.push(pi);
+  }
+  var order = shortIdx.concat(restIdx);
+  var showDivider = shortIdx.length > 0 && restIdx.length > 0;
+
+  for (var oi = 0; oi < order.length; oi++) {
+    if (showDivider && oi === shortIdx.length) {
+      h += '<div class="shortlist-divider"></div>';
+    }
+    var pi = order[oi];
+    var p = PLAYERS[pi];
+    var rowCls = (tab === 'recep') ? ' cols-2' : '';
+    h += '<div class="pcard"><div class="pname">#'+p.num+' '+p.name+'</div>';
+    // Grouped tabs open their first labelled block here; ungrouped ones just
+    // open a single stat row.
+    var grp = def.groups || null, gi = 0, gLeft = grp ? grp[0].n : 0;
+    if (grp) h += '<div class="phase-label">'+grp[0].label+'</div><div class="stat-row'+rowCls+'">';
+    else h += '<div class="stat-row'+rowCls+'">';
+    for (var ki = 0; ki < def.keys.length; ki++) {
+      if (grp && gLeft === 0) {
+        gi++;
+        gLeft = grp[gi].n;
+        h += '</div><div class="phase-label">'+grp[gi].label+'</div><div class="stat-row'+rowCls+'">';
+      }
+      if (grp) gLeft--;
+      var key = def.keys[ki];
+      var v = displayValue(def, pi, ki);
+      // Minus follows the active bucket: you can't remove a front-row attack
+      // when none were recorded, even if the shown total is non-zero.
+      var activeVal = (stats.players[pi] && Number(stats.players[pi][key])) || 0;
+      var lockCls = currentMatchLocked ? ' locked' : '';
+      var zeroCls = (activeVal === 0) ? ' zero' : '';
+      var tipText = (def.tooltips && def.tooltips[ki]) || '';
+      var tipEsc = tipText.replace(/"/g,'&quot;');
+      var tipAttr = tipText ? ' data-tooltip="'+tipEsc+'" title="'+tipEsc+'"' : '';
+      h += '<div class="stat-item"><span class="slabel'+(tipText?' has-tip':'')+'"'+tipAttr+'>'+def.labels[ki]+(tipText?' \u24d8':'')+'</span><div class="counter">';
+      h += '<button class="cbtn'+lockCls+zeroCls+'" id="m_'+tab+'_'+pi+'_'+ki+'" data-adj=-1 data-pi=' +pi+ ' data-key=' +key+ ' data-btab=' +tab+ ' data-ki=' +ki+ '>-</button>';
+      h += '<span class="cval'+(v>0?' nz':'')+'" id="v_'+tab+'_'+pi+'_'+ki+'">'+v+'</span>';
+      h += '<button class="cbtn'+lockCls+'" data-adj=1 data-pi=' +pi+ ' data-key=' +key+ ' data-btab=' +tab+ ' data-ki=' +ki+ '>+</button>';
+      h += '</div></div>';
+    }
+    h += '</div></div>';
+  }
+  if (ctxCls) h += '</div>';
+  el.innerHTML = h;
+}
+
+// ---- SET SYNC ----
+// When one person moves to a new set, the others are offered the same move.
+// Polling interval is conservative: every assistant's poll spends the owner's
+// Apps Script quota, and being a few seconds late here costs nothing.
+var SETSYNC_INTERVAL_MS = 90000;
+var setSyncTimer = null;
+var seenActiveSetTs = 0;
+var pendingSetChange = null;   // {setNum, ts}
+
+function startSetSync() {
+  if (setSyncTimer) clearInterval(setSyncTimer);
+  setSyncTimer = setInterval(pollActiveSet, SETSYNC_INTERVAL_MS);
+}
+
+function pollActiveSet() {
+  try {
+    if (!currentMatchId) return;
+    if (typeof document.hidden !== 'undefined' && document.hidden) return; // app in background
+    // Someone sitting on the Bilan isn't entering stats, so there's no set to
+    // sync -- but it's the same 90s tick, so piggyback a cheap "did anything
+    // change" check instead of opening a second timer just for that.
+    if (currentTab === 'bilan') { refreshBilanIfStale(); return; }
+    if (currentTab === 'cfg') return;                                      // not entering stats
+    if (pendingPoint || pendingSetChange) return;                          // don't stack prompts
+    google.script.run
+      .withSuccessHandler(onActiveSet)
+      .withFailureHandler(function(){})
+      .getActiveSet(currentMatchId);
+  } catch(e) {}
+}
+
+// Cheap check: ask the server only for a version number. Reload the full
+// Bilan data only if someone actually wrote a stat since we last looked --
+// used both when opening the Bilan tab and on the recurring set-sync tick.
+function refreshBilanIfStale() {
+  if (!currentMatchId) return;
+  try {
+    google.script.run
+      .withSuccessHandler(function(v) {
+        if (v === knownDataVersion) return; // nothing changed — keep what we have
+        knownDataVersion = v;
+        if (allSetsFetchGen === bilanCacheGen) {
+          // A whole-match load is already on its way (typically: the Bilan was
+          // just opened). Rather than throw it away and read every sheet a
+          // second time, check on arrival whether it read after this change.
+          staleVersionSeen = v;
+          setDataCache = {};
+          groupDataCache = {};
+        } else {
+          clearBilanCaches();   // someone changed a stat somewhere -- cached sets may be stale
+        }
+        loadStats();
+        loadSetProgress();   // another device may have started a set we don't know about
+        if (currentTab === 'bilan') setBilanMode(bilanMode);
+      })
+      .withFailureHandler(function() {})
+      .getDataVersion();
+  } catch(e) {}
+}
+
+function onActiveSet(r) {
+  if (!r || !r.ts) return;
+  if (r.ts <= seenActiveSetTs) return;      // already handled this announcement
+  if (r.setNum === currentSet) {            // it's where we already are (often our own move)
+    seenActiveSetTs = r.ts;
+    return;
+  }
+  pendingSetChange = r;
+  renderSetSyncBar();
+}
+
+function renderSetSyncBar() {
+  var bar = document.getElementById('setSyncBar');
+  if (!bar) return;
+  if (!pendingSetChange) { bar.className = 'setsync-bar'; bar.innerHTML = ''; return; }
+  bar.className = 'setsync-bar show';
+  bar.innerHTML =
+    '<span class="setsync-label">Nouveau set : <b>S' + pendingSetChange.setNum + '</b></span>' +
+    '<button class="setsync-btn" id="setSyncGo">Y aller</button>' +
+    '<button class="setsync-skip" id="setSyncSkip">&#10005;</button>';
+}
+
+function acceptSetChange() {
+  var p = pendingSetChange;
+  dismissSetChange();
+  if (!p) return;
+  currentSet = p.setNum;
+  updateHeaderSetBar();
+  loadStats();   // following, not announcing: no broadcast back
+}
+
+function dismissSetChange() {
+  if (pendingSetChange) seenActiveSetTs = pendingSetChange.ts;
+  pendingSetChange = null;
+  renderSetSyncBar();
+}
+
+// ---- PENDING POINT ----
+// A serve/reception is rated the instant it happens, but who won the rally is
+// only known seconds later. The bar carries the first step forward so the
+// second lands on the right player. An ace and a service error already decide
+// the rally, so those two skip the question entirely.
+var pendingPoint = null;   // {kind:'service'|'opp', idx, label, qualityKey}
+
+var OPP_PT     = { win:'ptGagne', lose:'ptPerdu' };
+var OPP_KEYS   = ['r3','r2','r1','rErr','ptGagne','ptPerdu'];
+var SVC_AUTO   = { s0:true, sErr:false };   // key -> Lynx won the rally?
+var OPP_AUTO   = { rErr:true };             // opponent reception error -> point Lynx
+
+function setPendingPoint(kind, idx, label, qualityKey) {
+  pendingPoint = { kind:kind, idx:idx, label:label, qualityKey:qualityKey,
+                   matchId:currentMatchId, setNum:currentSet };
+  renderPendingBar();
+}
+function clearPendingPoint() {
+  pendingPoint = null;
+  renderPendingBar();
+}
+function renderPendingBar() {
+  var bar = document.getElementById('pendingBar');
+  var scrim = document.getElementById('pendingScrim');
+  if (!bar) return;
+  if (!pendingPoint) {
+    bar.className = 'pending-bar'; bar.innerHTML = '';
+    if (scrim) scrim.className = 'pending-scrim';
+    return;
+  }
+  bar.className = 'pending-bar show';
+  if (scrim) scrim.className = 'pending-scrim show';
+  bar.innerHTML =
+    '<div class="pending-label">Qui a gagne l\'echange ?<br><b>' + pendingPoint.label + '</b></div>' +
+    '<div class="pending-actions">' +
+      '<button class="pending-btn win"  id="pendWin">LYNX +</button>' +
+      '<button class="pending-btn lose" id="pendLose">LYNX -</button>' +
+    '</div>' +
+    '<button class="pending-btn skip" id="pendSkip">Ignorer</button>';
+}
+function resolvePendingPoint(won) {
+  var p = pendingPoint;
+  if (!p) return;
+  clearPendingPoint();
+  if (p.kind === 'service') sendServePoint(p.idx, p.qualityKey, won, p.matchId, p.setNum);
+  else sendOppPoint(p.idx, won, p.matchId, p.setNum);
+}
+
+// Both writers go straight to the server: the point buttons are no longer on
+// the cards, so there is no counter in the DOM to keep in step.
+function sendServePoint(pi, qualityKey, won, matchId, setNum, delta) {
+  matchId = matchId || currentMatchId; setNum = setNum || currentSet;
+  if (!matchId) { showToast('Aucun match selectionne'); return; }
+  delta = (delta === -1) ? -1 : 1;
+  if (currentMatchLocked) { showToast('Match verrouille'); return; }
+  if (stats && stats.players[pi]) {
+    var k = won ? 'svcPtG' : 'svcPtP';
+    stats.players[pi][k] = Math.max(0, (stats.players[pi][k] || 0) + delta);
+  }
+  try {
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (!r || !r.ok) { showToast(r && r.locked ? 'Match verrouille' : 'Erreur'); return; }
+        noteLocalWrite(matchId, setNum);
+        if (currentTab === 'bilan') renderBilan();
+      })
+      .withFailureHandler(function(e) { showToast('Non enregistre : ' + (e && e.message ? e.message : e)); })
+      .recordServePoint(matchId, setNum, pi, qualityKey, won, delta);
+  } catch(e) {
+    showToast('Fonction serveur absente — deployer Code.gs');
+  }
+}
+
+function sendOppPoint(oi, won, matchId, setNum, delta) {
+  matchId = matchId || currentMatchId; setNum = setNum || currentSet;
+  if (!matchId) { showToast('Aucun match selectionne'); return; }
+  delta = (delta === -1) ? -1 : 1;
+  if (currentMatchLocked) { showToast('Match verrouille'); return; }
+  var key = won ? OPP_PT.win : OPP_PT.lose;
+  if (stats && stats.opp[oi]) stats.opp[oi][key] = Math.max(0, (stats.opp[oi][key] || 0) + delta);
+  try {
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (!r || !r.ok) { showToast(r && r.locked ? 'Match verrouille' : 'Erreur'); return; }
+        noteLocalWrite(matchId, setNum);
+        if (currentTab === 'bilan') renderBilan();
+      })
+      .withFailureHandler(function(e) { showToast('Non enregistre : ' + (e && e.message ? e.message : e)); })
+      .adjustOppStat(matchId, setNum, oi, key, delta);
+  } catch(e) {
+    showToast('Fonction serveur absente — deployer Code.gs');
+  }
+}
+
+// ---- CONTEXT SELECTORS ----
+// Some tabs record the same five stats under two different contexts. Rather
+// than doubling the buttons, a selector at the top holds the context and the
+// taps are filed accordingly — the same idea as the setter selector.
+var COMBO_KEYS_FR = ['frK','frCp','frCm','frBLE','frOut','frOtherErr'];
+var COMBO_KEYS_BR = ['brK','brCp','brCm','brBLE','brOut','brOtherErr'];
+var COMBO_LABELS  = ['K','C+','C-','BL','Out','Autre erreur'];
+// Shown as a toast when the "Autre" label is tapped -- these fault types
+// don't have their own button, so a reminder of what falls in the bucket.
+var COMBO_TOOLTIPS = [null,null,null,null,null,'Double touche, transport, ligne de 3m, filet, etc.'];
+var comboRow = 'FR';        // which row the combined attack tab is filing under
+var recepTypeIdx = 0;       // index into RECEP_TYPES for the reception tab
+
+// Tab definitions are dynamic for context-driven tabs, so renderPlayerTab and
+// adj() can treat them exactly like any other tab.
+function tabDef(tab) {
+  if (tab === 'atqCombo') {
+    // keys = where a tap is filed; displaySum = what the counter shows.
+    // The displayed number is the combined FR+BR total so it stays put when
+    // the row selector flips — matching how reception behaves with serve type.
+    return { keys: (comboRow === 'FR' ? COMBO_KEYS_FR : COMBO_KEYS_BR),
+             displaySum: [COMBO_KEYS_FR, COMBO_KEYS_BR],
+             labels: COMBO_LABELS, tooltips: COMBO_TOOLTIPS, atk: true };
+  }
+  return TABDEFS[tab];
+}
+
+// The number under a counter: a plain key normally, or a sum across buckets
+// for tabs that record into several while showing one total.
+function displayValue(def, pi, ki) {
+  var p = (stats && stats.players[pi]) || {};
+  if (def.displaySum) {
+    var s = 0;
+    for (var a = 0; a < def.displaySum.length; a++) s += Number(p[def.displaySum[a][ki]]) || 0;
+    return s;
+  }
+  return Number(p[def.keys[ki]]) || 0;
+}
+
+function renderComboRowSelector() {
+  var h = '<div class="ctx-selector">';
+  ['FR','BR'].forEach(function(r) {
+    h += '<button class="ctx-btn'+(comboRow===r?' active':'')+'" data-combo-row="'+r+'">'+
+         (r === 'FR' ? 'Front row' : 'Back row')+'</button>';
+  });
+  return h + '</div>';
+}
+
+function renderRecepTypeSelector() {
+  var h = '<div class="ctx-selector">';
+  for (var i = 0; i < RECEP_TYPES.length; i++) {
+    h += '<button class="ctx-btn'+(recepTypeIdx===i?' active':'')+'" data-recep-type="'+i+'">'+
+         RECEP_TYPES[i]+'</button>';
+  }
+  return h + '</div>';
+}
+
+// ---- SHORTLIST (client-side only, session-scoped — a quick-access aid,
+// not persisted stat data). Independent per tab: the reception shortlist
+// can differ from the attack shortlist, etc. ----
+var shortlist = {atqCombo:{}, recep:{}, service:{}, bloc:{}};
+var shortlistPanelOpen = {atqCombo:false, recep:false, service:false, bloc:false};
+function renderShortlistControl(tab) {
+  var sl = shortlist[tab] || {};
+  var count = 0;
+  for (var k in sl) if (sl[k]) count++;
+  var isOpen = !!shortlistPanelOpen[tab];
+  var h = '<div class="shortlist-control">';
+  h += '<button class="shortlist-toggle" data-toggle-shortlist-panel=' +tab+ '>Acces rapide ('+count+') <span class="chevron">'+(isOpen?'\u25b4':'\u25be')+'</span></button>';
+  if (isOpen) {
+    h += '<div class="shortlist-grid">';
+    for (var pi = 0; pi < PLAYERS.length; pi++) {
+      var p = PLAYERS[pi], isOn = !!sl[pi];
+      h += '<button class="shortlist-chip'+(isOn?' active':'')+'" data-toggle-shortlist-player=' +pi+ ' data-toggle-shortlist-tab=' +tab+ '>#'+p.num+' '+p.name+'</button>';
+    }
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+// ---- ADJ ----
+// Pending writes are coalesced per-cell: rapid taps (double-click, fast
+// repeated presses) only trigger ONE network call carrying the net delta,
+// sent after a short pause. This eliminates the "increases then decreases"
+// flicker caused by two overlapping server responses arriving out of order.
+var pendingWrites = {};
+// One counter per cell, bumped each time a write for that cell is actually
+// dispatched to the server. Two taps more than 400ms apart fire two separate
+// requests, and on a slow/flaky connection their responses can arrive back
+// out of order -- without this guard, an older response landing last would
+// stamp a stale value onto the screen, which looks exactly like "the number
+// changed by itself". Only the response matching the most recent dispatch is
+// allowed to update anything.
+var cellWriteSeq = {};
+// Keeps the counter's visuals in sync after a value change: red when non-zero,
+// a brief "pop" so the tap is visibly registered, and the minus button greyed
+// out at zero. Used by both the optimistic update and the server confirmation.
+function refreshCounterVisual(el, minusId, val, animate) {
+  el.textContent = val;
+  el.className = 'cval' + (val > 0 ? ' nz' : '');
+  if (animate) {
+    // Force a reflow so the animation restarts on rapid repeat taps.
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+  var minusBtn = minusId ? document.getElementById(minusId) : null;
+  if (minusBtn) minusBtn.classList.toggle('zero', val === 0);
+}
+
+function adj(pi, key, tab, ki, delta) {
+  // Belt-and-suspenders: the server now refuses a write with no match id, but
+  // catching it here too means no debounce timer even gets scheduled.
+  if (!currentMatchId) { showToast('Aucun match selectionne'); return; }
+  var el = document.getElementById('v_'+tab+'_'+pi+'_'+ki);
+  if (!el) return;
+  var def = tabDef(tab);
+  var minusId = 'm_'+tab+'_'+pi+'_'+ki;
+
+  // Work in terms of the bucket being written to, not the number on screen —
+  // for the attack tab those differ (screen shows FR+BR, taps file into one).
+  var activeCur = (stats && stats.players[pi]) ? (Number(stats.players[pi][key]) || 0) : 0;
+  var activeNext = Math.max(0, activeCur + delta);
+  if (activeNext === activeCur) return; // minus at zero — nothing to do
+
+  if (stats && stats.players[pi]) stats.players[pi][key] = activeNext;
+
+  refreshCounterVisual(el, null, displayValue(def, pi, ki), true);
+  var mb = document.getElementById(minusId);
+  if (mb) mb.classList.toggle('zero', activeNext === 0);
+
+  var isAtk = def && def.atk, si = isAtk ? currentSetter : -1;
+  var rti = (tab === 'recep') ? recepTypeIdx : -1;
+
+  // Capture match/set NOW so a delayed write can't land on the wrong match if
+  // the user switches away during the debounce window.
+  var matchAtTap = currentMatchId, setAtTap = currentSet;
+
+  // Schedule the stat write FIRST. Anything optional that follows must never
+  // be able to prevent the stat itself from reaching the sheet.
+  var cellKey = tab+'_'+pi+'_'+key;
+  var pw = pendingWrites[cellKey];
+  if (!pw) { pw = pendingWrites[cellKey] = { baseVal: activeCur }; }
+  if (pw.timer) clearTimeout(pw.timer);
+
+  pw.timer = setTimeout(function() {
+    var netDelta = activeNext - pw.baseVal;
+    delete pendingWrites[cellKey];
+    if (netDelta === 0) return; // taps cancelled out
+    var seq = (cellWriteSeq[cellKey] = (cellWriteSeq[cellKey]||0) + 1);
+    sendPlayerStatWrite(matchAtTap, setAtTap, pi, key, netDelta, si, el, isAtk, setAtTap, 0, minusId, rti, tab, ki, cellKey, seq);
+  }, 400);
+
+  // Rating a serve arms the follow-up question — except for an ace or a
+  // service error, which decide the rally on their own.
+  if (tab === 'service') {
+    try {
+      if (SVC_AUTO.hasOwnProperty(key)) {
+        // An ace or a service error settles the rally on its own — and
+        // correcting one must take the awarded point back with it.
+        sendServePoint(pi, key, SVC_AUTO[key], matchAtTap, setAtTap, delta > 0 ? 1 : -1);
+        clearPendingPoint();
+      } else if (delta > 0) {
+        setPendingPoint('service', pi, '#'+PLAYERS[pi].num+' '+PLAYERS[pi].name, key);
+      }
+    } catch(e) {
+      showToast('Point non enregistre — Code.gs a jour?');
+    }
+  }
+}
+
+// Retries a failed write up to 2 extra times with growing delay before giving
+// up — absorbs brief network blips (a few seconds of bad WiFi/cell signal)
+// without losing the tap. If all attempts fail, flags the number as unsaved
+// so the person knows to re-enter it once the connection is back.
+function sendPlayerStatWrite(matchId, setNum, pi, key, netDelta, si, el, isAtk, setAtTap, attempt, minusId, rti, tab, ki, cellKey, seq) {
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r || !r.ok) { showToast(r && r.locked ? 'Match verrouille' : 'Erreur'); return; }
+      el.classList.remove('unsaved');
+      noteLocalWrite(matchId, setNum);
+      // The write reached the sheet, so that set now holds data -- true no
+      // matter which set is on screen or whether a newer tap superseded it.
+      if (matchId === currentMatchId && !setProgress[setAtTap]) {
+        setProgress[setAtTap] = true;
+        document.querySelectorAll('.set-btn[data-set="'+setAtTap+'"]').forEach(function(b){ b.classList.add('has-data'); });
+      }
+      // The user switched set or match while this was in flight: r.val
+      // belongs to the old set and must not land in the stats now displayed.
+      if (matchId !== currentMatchId || setNum !== currentSet) return;
+      // A newer write for this same cell has since been dispatched (or has
+      // already answered) -- its response is the current truth, so this
+      // older one must not overwrite the display with a stale value.
+      if (cellWriteSeq[cellKey] !== seq) return;
+      if (stats && stats.players[pi]) stats.players[pi][key] = r.val;
+      refreshCounterVisual(el, null, displayValue(tabDef(tab), pi, ki), false);
+      var mb2 = minusId ? document.getElementById(minusId) : null;
+      if (mb2) mb2.classList.toggle('zero', r.val === 0);
+      if (isAtk && si >= 0 && stats && stats.setterStats) stats.setterStats[si][pi][key] = r.setterVal;
+      if (rti >= 0 && stats && stats.recepTypeStats && stats.recepTypeStats[rti]) stats.recepTypeStats[rti][pi][key] = r.recepTypeVal;
+      if (currentTab === 'bilan') renderBilan();
+    })
+    .withFailureHandler(function(e) {
+      // Retries must continue even if a newer tap has since superseded this
+      // one -- the delta this request carries still has to reach the sheet.
+      if (attempt < 2) {
+        setTimeout(function() {
+          sendPlayerStatWrite(matchId, setNum, pi, key, netDelta, si, el, isAtk, setAtTap, attempt+1, minusId, rti, tab, ki, cellKey, seq);
+        }, 1200 * (attempt+1));
+      } else {
+        // Always warn, even for a superseded write: its tap is genuinely lost
+        // and the person needs to know to re-enter it.
+        el.classList.add('unsaved');
+        showToast('Non enregistre — reseau instable');
+      }
+    })
+    .adjustPlayerStat(matchId, setNum, pi, key, netDelta, si, rti);
+}
+
+// ---- BILAN ----
+function setBilanMode(mode) {
+  bilanMode = mode;
+  if (mode === 'group') { refreshGroupsFromMatches(); }
+  renderBilan();   // fetches whatever the chosen view is missing
+}
+
+// ---- BILAN CACHE ----
+// Every set of the current match is kept in memory once loaded, so flipping
+// between sets and filters (setter, row, serve type) never goes back to the
+// server. The set being played is never cached: it always renders from the
+// live `stats` the entry screens keep up to date.
+//
+// Responses only ever fill caches; the screen is then redrawn from the
+// current state. A late answer therefore can't paint the wrong set -- it just
+// lands in the cache under its own set number.
+var setDataCache = {};      // setNum -> stats of that set (current match only)
+var bilanCacheGen = 0;      // bumped whenever the caches are thrown away
+var allSetsFetchGen = -1;   // generation of the in-flight whole-match fetch
+var oneSetFetchGen = {};    // setNum -> generation of an in-flight single-set fetch
+var bilanFetchError = null; // shown instead of the loader, never retried in a loop
+var staleVersionSeen = null; // a change detected while a whole-match load was under way
+
+function clearBilanCaches() {
+  allSetsCache = null;
+  setDataCache = {};
+  groupDataCache = {};
+  bilanCacheGen++;          // any answer still in flight now belongs to the past
+  allSetsFetchGen = -1;
+  oneSetFetchGen = {};
+  bilanFetchError = null;
+  staleVersionSeen = null;
+}
+
+// A stat we just wrote makes that set's cached copy and the match total out
+// of date -- drop them now rather than wait for the next version check.
+function noteLocalWrite(matchId, setNum) {
+  if (matchId !== currentMatchId) return;
+  delete setDataCache[setNum];
+  allSetsCache = null;
+}
+
+// Keep the per-set answers, except for the set being played right now.
+function storeSets(perSet) {
+  if (!perSet) return;
+  for (var k in perSet) {
+    var n = Number(k);
+    if (n !== currentSet && perSet[k]) setDataCache[n] = perSet[k];
+  }
+}
+
+// One round trip for the whole match: the server reads every set anyway to
+// build the "Match complet" total, so handing back each set on its own costs
+// no extra sheet reads.
+function fetchAllSets() {
+  if (allSetsFetchGen === bilanCacheGen) return;   // already on its way
+  var gen = allSetsFetchGen = bilanCacheGen, matchAtFetch = currentMatchId;
+  google.script.run
+    .withSuccessHandler(function(d) {
+      if (gen !== bilanCacheGen || matchAtFetch !== currentMatchId) return;
+      allSetsFetchGen = -1;
+      var per = d && d.perSet, readVer = d && d.dataVersion;
+      if (d) { delete d.perSet; delete d.dataVersion; }
+      // A stat changed somewhere while this was loading: keep the answer only
+      // if the server read the sheets after that change, otherwise reload.
+      if (staleVersionSeen !== null && !(typeof readVer === 'number' && readVer >= staleVersionSeen)) {
+        clearBilanCaches();
+        if (currentTab === 'bilan') renderBilan();
+        return;
+      }
+      staleVersionSeen = null;
+      allSetsCache = d || null;
+      storeSets(per);
+      if (!allSetsCache) bilanFetchError = 'Pas de donnees';
+      if (currentTab === 'bilan') renderBilan();
+    })
+    .withFailureHandler(function(e) {
+      if (gen !== bilanCacheGen || matchAtFetch !== currentMatchId) return;
+      allSetsFetchGen = -1;
+      bilanFetchError = (e && e.message) ? e.message : String(e);
+      if (currentTab === 'bilan') renderBilan();
+    })
+    .readAndMergeAll(matchAtFetch, true);
+}
+
+// Fallback for a set the whole-match load didn't cover (it was the live set
+// back then, or it started afterwards).
+function fetchOneSet(n) {
+  if (oneSetFetchGen[n] === bilanCacheGen) return;
+  var gen = oneSetFetchGen[n] = bilanCacheGen, matchAtFetch = currentMatchId;
+  google.script.run
+    .withSuccessHandler(function(d) {
+      if (gen !== bilanCacheGen || matchAtFetch !== currentMatchId) return;
+      delete oneSetFetchGen[n];
+      if (d) setDataCache[n] = d; else bilanFetchError = 'Pas de donnees';
+      if (currentTab === 'bilan') renderBilan();
+    })
+    .withFailureHandler(function(e) {
+      if (gen !== bilanCacheGen || matchAtFetch !== currentMatchId) return;
+      delete oneSetFetchGen[n];
+      bilanFetchError = (e && e.message) ? e.message : String(e);
+      if (currentTab === 'bilan') renderBilan();
+    })
+    .readAll(matchAtFetch, n);
+}
+
+function bilanErrorHtml() {
+  return '<div class="err-box"><b>Erreur:</b> ' + bilanFetchError +
+         '<br><br><button class="save-btn" id="btnRefreshBilan">Reessayer</button></div>';
+}
+function bilanLoaderHtml(txt) {
+  return '<div class="loader"><div class="spinner" style="margin:0 auto 10px"></div>' + txt + '</div>';
+}
+function setBilanSet(n) { bilanSet = n; renderBilan(); }
+function setBilanGroup(g) { selectedGroup = g; renderBilan(); }
+// Groups in use are derivable from matchesCache — no server call needed.
+function refreshGroupsFromMatches() {
+  var used = {};
+  matchesCache.forEach(function(m){ if (m.group) used[m.group] = true; });
+  groupsCache = MATCH_GROUPS.filter(function(g){ return used[g]; });
+}
+function loadGroups() {
+  refreshGroupsFromMatches();
+  if (currentTab === 'bilan') renderBilan();
+  if (currentTab === 'cfg') renderCfg();
+}
+
+function renderBilan() {
+  if (!stats) return;
+  var el = document.getElementById('bilan');
+  var h = '<div class="bilan-header"><div class="bilan-toggle">';
+  h += '<button class="btoggle'+(bilanMode==='set'?' active':'')+'" data-bilan-mode="set">Par set</button>';
+  h += '<button class="btoggle'+(bilanMode==='game'?' active':'')+'" data-bilan-mode="game">Match complet</button>';
+  h += '<button class="btoggle'+(bilanMode==='group'?' active':'')+'" data-bilan-mode="group">Par groupe</button>';
+  h += '</div><button class="bilan-refresh-btn" id="btnRefreshBilan" title="Actualiser">\u27f3</button></div>';
+
+  if (bilanMode === 'game') {
+    if (!allSetsCache) {
+      if (bilanFetchError) { el.innerHTML = h + bilanErrorHtml(); return; }
+      fetchAllSets();
+      el.innerHTML = h + bilanLoaderHtml('Chargement match complet...'); return;
+    }
+    h += renderBilanData(allSetsCache);
+    el.innerHTML = h; return;
+  }
+
+  if (bilanMode === 'group') {
+    if (groupsCache === null) refreshGroupsFromMatches();
+    if (groupsCache.length === 0) {
+      h += '<div class="err-box">Aucun groupe defini. Assignez un groupe a vos matchs dans Config (icone crayon).</div>';
+      el.innerHTML = h; return;
+    }
+    if (!selectedGroup || groupsCache.indexOf(selectedGroup) === -1) selectedGroup = groupsCache[0];
+    h += '<div class="set-pills">';
+    groupsCache.forEach(function(g) {
+      h += '<button class="spill'+(selectedGroup===g?' active':'')+'" data-bilan-group="'+g+'">'+g+'</button>';
+    });
+    h += '</div>';
+    // Spell out which matches feed the totals, so the numbers are never
+    // ambiguous. Derived from matchesCache — no extra server round trip.
+    var inGroup = matchesCache.filter(function(m){ return m.group === selectedGroup; });
+    h += '<div class="group-matches"><span class="group-matches-count">' +
+         inGroup.length + ' match' + (inGroup.length > 1 ? 's' : '') + '</span>';
+    if (inGroup.length) {
+      h += '<ul class="group-matches-list">';
+      inGroup.forEach(function(m){ h += '<li>' + m.name + '</li>'; });
+      h += '</ul>';
+    }
+    h += '</div>';
+    if (groupDataCache[selectedGroup]) { h += renderBilanData(groupDataCache[selectedGroup]); el.innerHTML = h; return; }
+    h += '<div class="loader" id="groupLoader"><div class="spinner" style="margin:0 auto 10px"></div>Chargement...</div>';
+    el.innerHTML = h;
+    var g2 = selectedGroup, matchAtFetchG = currentMatchId;
+    google.script.run
+      .withSuccessHandler(function(d) {
+        groupDataCache[g2] = d;
+        // Stale answer: the user has since switched group/match/mode -- the
+        // data is still cached above for next time, but must not be painted
+        // over whatever's on screen now.
+        if (matchAtFetchG !== currentMatchId || selectedGroup !== g2 || bilanMode !== 'group') return;
+        var loader = document.getElementById('groupLoader');
+        if (loader) loader.outerHTML = renderBilanData(d);
+      })
+      .withFailureHandler(function(e) {
+        if (matchAtFetchG !== currentMatchId || selectedGroup !== g2 || bilanMode !== 'group') return;
+        showToast('Erreur: '+e.message);
+      })
+      .readAndMergeGroup(g2);
+    return;
+  }
+
+  // mode === 'set' — only offer sets that actually have data, so an
+  // untouched Set 4/5 doesn't clutter the picker. The live current set is
+  // always included even if empty, so it's never a dead end.
+  var availableSets = [];
+  for (var s = 1; s <= 5; s++) if (setProgress[s] || s === currentSet) availableSets.push(s);
+  if (availableSets.indexOf(bilanSet) === -1) bilanSet = availableSets[0];
+
+  h += '<div class="set-pills">';
+  availableSets.forEach(function(s) {
+    h += '<button class="spill'+(bilanSet===s?' active':'')+'" data-bilan-set="'+s+'">S'+s+'</button>';
+  });
+  h += '</div>';
+  if (bilanSet === currentSet) { h += renderBilanData(stats); el.innerHTML = h; return; }
+  if (setDataCache[bilanSet]) { h += renderBilanData(setDataCache[bilanSet]); el.innerHTML = h; return; }
+  if (bilanFetchError) { el.innerHTML = h + bilanErrorHtml(); return; }
+  // First look at a past set: load the whole match in one go so every other
+  // set is ready too. If that already happened and this set wasn't in it,
+  // fetch just this one.
+  if (!allSetsCache) fetchAllSets(); else fetchOneSet(bilanSet);
+  el.innerHTML = h + bilanLoaderHtml('Chargement set '+bilanSet+'...');
+}
+
+// Forces a fresh fetch from the server, bypassing any locally cached data —
+// use this if stats might have been entered from another device/session.
+function refreshBilan() {
+  showLoading();
+
+  // Groups span several matches, so they keep their own path. Set progress
+  // isn't shown in that mode, so there's nothing extra to fetch.
+  if (bilanMode === 'group') {
+    if (!selectedGroup) { hideLoading(); return; }
+    var g = selectedGroup;
+    google.script.run
+      .withSuccessHandler(function(d) { hideLoading(); groupDataCache[g] = d; renderBilan(); showToast('Actualise!'); })
+      .withFailureHandler(function(e) { hideLoading(); showToast('Erreur: '+e.message); })
+      .readAndMergeGroup(g);
+    return;
+  }
+
+  // One round trip covers merged totals, the selected set, set progress and
+  // the data version — all from a single pass over the five sheets.
+  var wantSet = (bilanMode === 'set') ? bilanSet : 0;
+  clearBilanCaches();   // a manual refresh means "forget everything you had"
+  var gen = bilanCacheGen, matchAtFetch = currentMatchId;
+  google.script.run
+    .withSuccessHandler(function(r) {
+      hideLoading();
+      if (gen !== bilanCacheGen || matchAtFetch !== currentMatchId) return;
+      if (!r) { showToast('Erreur'); return; }
+      knownDataVersion = r.dataVersion;
+      setProgress      = r.setProgress || {};
+      allSetsCache     = r.merged;
+      storeSets(r.sets);
+      if (r.setData && bilanSet === currentSet) stats = r.setData;
+      updateHeaderSetBar();
+      renderAll();
+      renderBilan();
+      showToast('Actualise!');
+    })
+    .withFailureHandler(function(e) {
+      hideLoading();
+      if (gen !== bilanCacheGen || matchAtFetch !== currentMatchId) return;
+      bilanFetchError = (e && e.message) ? e.message : String(e);
+      renderBilan();
+    })
+    .refreshBilanData(matchAtFetch, wantSet);
+}
+
+function renderBilanData(d) {
+  if (!d) return '<div class="err-box">Pas de donnees</div>';
+  var h = renderAtkBlock(d) + renderPhaseRecep(d) + renderPhaseService(d) + renderPhaseBloc(d);
+  // Opponent slots are per match — "Joueur 1" is a different person in every
+  // game — so summing them across a group would be meaningless.
+  if (bilanMode !== 'group') h += renderPhaseOppRecep(d);
+  h += renderMatchSummary(d);
+  return applyBilanSort(h);
+}
+
+// ---- BILAN SORT ----
+// Tap a column header: biggest first, tap again: smallest first, third tap:
+// back to roster order. The EQUIPE/TOTAL row always stays at the bottom, and
+// so do "--" cells. Ties keep roster order. Done as a single pass over the
+// finished HTML so none of the six table builders had to change.
+var bilanSort = {};   // table key -> {col, dir:'desc'|'asc'}
+function resetBilanSort() { bilanSort = {}; }
+function cycleBilanSort(t, c) {
+  var cur = bilanSort[t];
+  if (!cur || cur.col !== c) bilanSort[t] = {col:c, dir:'desc'};
+  else if (cur.dir === 'desc') cur.dir = 'asc';
+  else delete bilanSort[t];
+  renderBilan();
+}
+function sortCellValue(td) {
+  var txt = td.replace(/<[^>]*>/g, '').trim();
+  if (txt === '' || txt === '--') return null;
+  var v = parseFloat(txt.replace('%', '').replace('+', ''));
+  return isNaN(v) ? null : v;
+}
+function applyBilanSort(html) {
+  return html.replace(/<table class="ctable" data-sort="([^"]+)">([\s\S]*?)<\/table>/g, function(all, key, inner) {
+    var st = bilanSort[key];
+    var ci = -1;
+    inner = inner.replace(/<thead>([\s\S]*?)<\/thead>/, function(a, head) {
+      return '<thead>' + head.replace(/<th([^>]*)>([\s\S]*?)<\/th>/g, function(th, attrs, label) {
+        ci++;
+        // The name column isn't sortable: tapping it puts this table back in
+        // roster order. Deliberately looks like any other header.
+        if (ci === 0) return '<th class="lc sort-reset" data-sort-reset="' + key + '">' + label + '</th>';
+        var on = st && st.col === ci;
+        return '<th data-sort-t="' + key + '" data-sort-c="' + ci + '" class="sortable' + (on ? ' sorted' : '') + '">' +
+               label + (on ? (st.dir === 'desc' ? '\u25BC' : '\u25B2') : '') + '</th>';
+      }) + '</thead>';
+    });
+    if (st) {
+      inner = inner.replace(/<tbody>([\s\S]*?)<\/tbody>/, function(a, body) {
+        var data = [], fixed = [];
+        body.split('</tr>').forEach(function(r, i) {
+          if (!r.trim()) return;
+          r += '</tr>';
+          if (/class="team-row"/.test(r) || /colspan=/.test(r)) { fixed.push(r); return; }
+          var cells = r.match(/<td[^>]*>[\s\S]*?<\/td>/g) || [];
+          data.push({ html: r, i: i, v: cells[st.col] !== undefined ? sortCellValue(cells[st.col]) : null });
+        });
+        data.sort(function(x, y) {
+          if (x.v === null && y.v === null) return x.i - y.i;
+          if (x.v === null) return 1;
+          if (y.v === null) return -1;
+          if (x.v !== y.v) return st.dir === 'desc' ? y.v - x.v : x.v - y.v;
+          return x.i - y.i;
+        });
+        return '<tbody>' + data.map(function(x){ return x.html; }).join('') + fixed.join('') + '</tbody>';
+      });
+    }
+    return '<table class="ctable" data-sort="' + key + '">' + inner + '</table>';
+  });
+}
+
+// Traffic-light class for a key stat: below lo = red, lo up to hi = yellow,
+// hi and above = green. Compared on the value as displayed, so a cell never
+// reads 1.80 while coloured as if it were below 1.8.
+function tierCls(v, lo, hi) {
+  if (v === null || isNaN(v)) return '';
+  return v < lo ? 'q-lo' : (v < hi ? 'q-mid' : 'q-hi');
+}
+function atkRow(K,Cp,Cm,BLE,Out,OE,lbl,isTeam) {
+  // "Autre erreur" is tracked here for convenience but is its own separate
+  // stat -- it stays out of TA and the efficiency %, and is shown as an extra
+  // column after them rather than folded into the attack math.
+  var TA = K+Cp+Cm+BLE+Out; if (TA===0 && OE===0) return '';
+  var eff = TA>0 ? Math.round((K-(BLE+Out))/TA*100) : null;
+  return '<tr'+(isTeam?' class="team-row"':'')+'>'+
+    '<td class="lc">'+lbl+'</td><td>'+K+'</td><td>'+Cp+'</td><td>'+Cm+'</td>'+
+    '<td>'+BLE+'</td><td>'+Out+'</td><td>'+TA+'</td>'+
+    '<td class="'+tierCls(eff,5,20)+'">'+(eff===null?'--':eff+'%')+'</td>'+
+    '<td>'+OE+'</td></tr>';
+}
+// Attack bilan filters. Kept as two independent axes so they can be crossed —
+// "back row under setter B" isn't reachable with stacked tables.
+var atkFilterRow = 'all';     // 'all' | 'FR' | 'BR'
+var atkFilterSetter = -1;     // -1 = all setters, else index into setterStats
+
+function renderAtkBlock(d) {
+  var setters = d.setters || [];
+  var h = '<div class="phase-block"><div class="phase-hdr">Attaque</div>';
+
+  h += '<div class="atk-filters">';
+  h += '<div class="atk-filter-row"><span class="atk-filter-lbl">Rangee</span><div class="atk-chips">';
+  [['all','Tout'],['FR','Front row'],['BR','Back row']].forEach(function(o) {
+    h += '<button class="atk-chip'+(atkFilterRow===o[0]?' active':'')+'" data-atk-row="'+o[0]+'">'+o[1]+'</button>';
+  });
+  h += '</div></div>';
+  h += '<div class="atk-filter-row"><span class="atk-filter-lbl">Passeure</span><div class="atk-chips">';
+  h += '<button class="atk-chip'+(atkFilterSetter===-1?' active':'')+'" data-atk-setter="-1">Tout</button>';
+  for (var si = 0; si < (d.setterStats ? d.setterStats.length : 0); si++) {
+    var nm = setters[si] || ('P'+(si+1));
+    h += '<button class="atk-chip'+(atkFilterSetter===si?' active':'')+'" data-atk-setter="'+si+'">'+nm+'</button>';
+  }
+  h += '</div></div></div>';
+
+  // Setter filter swaps the data source; row filter swaps which keys are read.
+  // Both sources use the same key names, so one pick function covers all four
+  // combinations.
+  var src = (atkFilterSetter >= 0 && d.setterStats && d.setterStats[atkFilterSetter])
+            ? d.setterStats[atkFilterSetter] : d.players;
+  var pick;
+  if (atkFilterRow === 'FR') {
+    pick = function(p){ return {K:p.frK, Cp:p.frCp, Cm:p.frCm, BLE:p.frBLE, Out:p.frOut, OE:p.frOtherErr||0}; };
+  } else if (atkFilterRow === 'BR') {
+    pick = function(p){ return {K:p.brK, Cp:p.brCp, Cm:p.brCm, BLE:p.brBLE, Out:p.brOut, OE:p.brOtherErr||0}; };
+  } else {
+    pick = function(p){ return {K:p.frK+p.brK, Cp:p.frCp+p.brCp, Cm:p.frCm+p.brCm,
+                                BLE:p.frBLE+p.brBLE, Out:p.frOut+p.brOut,
+                                OE:(p.frOtherErr||0)+(p.brOtherErr||0)}; };
+  }
+
+  var rows = '', tK=0,tCp=0,tCm=0,tBLE=0,tOut=0,tOE=0, any=false;
+  for (var i = 0; i < src.length; i++) {
+    var v = pick(src[i]);
+    var TA = v.K+v.Cp+v.Cm+v.BLE+v.Out;
+    if (TA === 0 && v.OE === 0) continue;
+    any = true;
+    tK+=v.K; tCp+=v.Cp; tCm+=v.Cm; tBLE+=v.BLE; tOut+=v.Out; tOE+=v.OE;
+    rows += atkRow(v.K,v.Cp,v.Cm,v.BLE,v.Out,v.OE,'#'+PLAYERS[i].num+' '+PLAYERS[i].name,false);
+  }
+
+  if (!any) {
+    h += '<div class="atk-empty">Aucune donnee pour cette combinaison</div>';
+    return h + '</div>';
+  }
+  rows += atkRow(tK,tCp,tCm,tBLE,tOut,tOE,'EQUIPE',true);
+  h += '<div class="ctable-wrap"><table class="ctable" data-sort="atk"><thead><tr>' +
+       '<th class="lc">Joueuse</th><th>K</th><th>C+</th><th>C-</th><th>BL</th><th>Out</th><th>TA</th><th>%</th><th>Aut. err.</th>' +
+       '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  return h + '</div>';
+}
+// Reception filter, same idea as the attack block: one table plus a chip row,
+// instead of stacking a table per serve type.
+var recepFilterType = -1;   // -1 = all serves, else index into RECEP_TYPES
+
+function recepScoreCell(v) {
+  var txt = v.toFixed(2);
+  return '<td class="'+tierCls(Number(txt),1.6,1.8)+'">'+txt+'</td>';
+}
+function renderPhaseRecep(d) {
+  var h = '<div class="phase-block"><div class="phase-hdr">Reception (Lynx)</div>';
+
+  var types = (typeof RECEP_TYPES !== 'undefined') ? RECEP_TYPES : [];
+  h += '<div class="atk-filters"><div class="atk-filter-row">' +
+       '<span class="atk-filter-lbl">Service</span><div class="atk-chips">';
+  h += '<button class="atk-chip'+(recepFilterType===-1?' active':'')+'" data-recep-filter="-1">Tout</button>';
+  for (var ti = 0; ti < types.length; ti++) {
+    h += '<button class="atk-chip'+(recepFilterType===ti?' active':'')+'" data-recep-filter="'+ti+'">'+
+         types[ti]+'</button>';
+  }
+  h += '</div></div></div>';
+
+  // The per-type blocks carry the same keys as the aggregate, so one code path
+  // serves every filter.
+  var src = (recepFilterType >= 0 && d.recepTypeStats && d.recepTypeStats[recepFilterType])
+            ? d.recepTypeStats[recepFilterType] : d.players;
+
+  var rows = '', t3=0,t2=0,t1=0,tErr=0,tTA=0, any=false;
+  for (var i = 0; i < src.length; i++) {
+    var p = src[i];
+    var TA = (p.r3||0)+(p.r2||0)+(p.r1||0)+(p.rErr||0);
+    if (TA === 0) continue;
+    any = true;
+    t3+=p.r3; t2+=p.r2; t1+=p.r1; tErr+=p.rErr; tTA+=TA;
+    rows += '<tr><td class="lc">#'+PLAYERS[i].num+' '+PLAYERS[i].name+'</td>' +
+      '<td>'+p.r3+'</td><td>'+p.r2+'</td><td>'+p.r1+'</td><td>'+p.rErr+'</td><td>'+TA+'</td>' +
+      recepScoreCell((p.r3*3+p.r2*2+p.r1)/TA)+'</tr>';
+  }
+
+  if (!any) {
+    h += '<div class="atk-empty">Aucune donnee pour ce type de service</div>';
+    return h + '</div>';
+  }
+
+  // Team score comes from the summed raw counts, so it is weighted by each
+  // player's volume rather than being an average of averages.
+  rows += '<tr class="team-row"><td class="lc">EQUIPE</td>' +
+    '<td>'+t3+'</td><td>'+t2+'</td><td>'+t1+'</td><td>'+tErr+'</td><td>'+tTA+'</td>' +
+    recepScoreCell((t3*3+t2*2+t1)/tTA)+'</tr>';
+
+  h += '<div class="ctable-wrap"><table class="ctable" data-sort="recep"><thead><tr>' +
+       '<th class="lc">Joueuse</th><th>3</th><th>2</th><th>1</th><th>Err</th><th>TA</th><th>Tot/3</th>' +
+       '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  return h + '</div>';
+}
+function renderPhaseOppRecep(d) {
+  if (!d.opp) return '';
+  var labels = d.oppLabels || OPP_DEFAULT_LABELS;
+  var visible = oppVisibleCount(d);
+  var h = '<div class="phase-block"><div class="phase-hdr">Reception adverse</div><div class="ctable-wrap">' +
+    '<table class="ctable" data-sort="opp"><thead><tr><th class="lc">Joueuse</th><th>3</th><th>2</th><th>1</th><th>Err</th><th>TA</th><th>Tot/3</th><th>%Pts</th></tr></thead><tbody>';
+  var any = false;
+  for (var i = 0; i < visible; i++) {
+    var o=d.opp[i], TA=o.r3+o.r2+o.r1+o.rErr;
+    var ptTotal = o.ptGagne + o.ptPerdu;
+    if (TA===0 && ptTotal===0) continue;
+    any = true;
+    var label = labels[i] || ('Joueur '+(i+1));
+    var recepScore = TA>0 ? ((o.r3*3+o.r2*2+o.r1)/TA).toFixed(2) : '--';
+    var ptNum = ptTotal>0 ? Math.round(o.ptGagne/ptTotal*100) : null;
+    var ptPct = ptNum===null ? '--' : ptNum+'%';
+    h += '<tr><td class="lc">'+label+'</td>' +
+      '<td>'+o.r3+'</td><td>'+o.r2+'</td><td>'+o.r1+'</td><td>'+o.rErr+'</td><td>'+TA+'</td>' +
+      '<td>'+recepScore+'</td><td class="'+tierCls(ptNum,45,65)+'">'+ptPct+'</td></tr>';
+  }
+  if (!any) h += '<tr><td class="lc" colspan="8" style="text-align:center;color:#999;padding:10px">Aucune donnee</td></tr>';
+  return h + '</tbody></table></div></div>';
+}
+function renderPhaseService(d) {
+  var h = '<div class="phase-block"><div class="phase-hdr">Service</div><div class="ctable-wrap">' +
+    '<table class="ctable" data-sort="svc"><thead><tr><th class="lc">Joueuse</th><th>Ace</th><th>1</th><th>2</th><th>3</th><th>Err</th><th>TA</th><th>Tot/4</th><th>%Pts</th></tr></thead><tbody>';
+  var t0=0,t1=0,t2=0,t3=0,tErr=0,tTA=0,tG=0,tP=0;
+  for (var i = 0; i < d.players.length; i++) {
+    var p=d.players[i], TA=p.s0+p.s1+p.s2+p.s3+p.sErr;
+    var g=p.svcPtG||0, pl=p.svcPtP||0, ptTot=g+pl;
+    if(TA===0 && ptTot===0) continue;
+    t0+=p.s0; t1+=p.s1; t2+=p.s2; t3+=p.s3; tErr+=p.sErr; tTA+=TA; tG+=g; tP+=pl;
+    var score = TA>0 ? ((p.s1+p.s2*2+p.s3*3+p.sErr*4)/TA).toFixed(2) : '--';
+    var pctNum = ptTot>0 ? Math.round(g/ptTot*100) : null;
+    var pct = pctNum===null ? '--' : pctNum+'%';
+    h += '<tr><td class="lc">#'+PLAYERS[i].num+' '+PLAYERS[i].name+'</td>' +
+      '<td>'+p.s0+'</td><td>'+p.s1+'</td><td>'+p.s2+'</td><td>'+p.s3+'</td><td>'+p.sErr+'</td><td>'+TA+'</td>' +
+      '<td class="ep">'+score+'</td><td class="'+tierCls(pctNum,40,55)+'">'+pct+'</td></tr>';
+  }
+  if (tTA > 0 || (tG+tP) > 0) {
+    var teamScore = tTA>0 ? ((t1+t2*2+t3*3+tErr*4)/tTA).toFixed(2) : '--';
+    var teamPtTot = tG+tP;
+    var teamPctNum = teamPtTot>0 ? Math.round(tG/teamPtTot*100) : null;
+    var teamPct = teamPctNum===null ? '--' : teamPctNum+'%';
+    h += '<tr class="team-row"><td class="lc">EQUIPE</td>' +
+      '<td>'+t0+'</td><td>'+t1+'</td><td>'+t2+'</td><td>'+t3+'</td><td>'+tErr+'</td><td>'+tTA+'</td>' +
+      '<td>'+teamScore+'</td><td class="'+tierCls(teamPctNum,40,55)+'">'+teamPct+'</td></tr>';
+  }
+  h += '</tbody></table></div>';
+  h += svcPointsByQualityHtml(d);
+  return h + '</div>';
+}
+
+// Rally outcome by the quality of the serve that started it — answers
+// "how often do we win the point after serving a 1?".
+function svcPointsByQualityHtml(d) {
+  if (!d.svcPtByQuality || d.svcPtByQuality.length < 2) return '';
+  var keys = ['s0','s1','s2','s3','sErr'];
+  var lbls = ['Ace (0)','1','2','3','Err (4)'];
+  var won = [0,0,0,0,0], lost = [0,0,0,0,0], any = false;
+  for (var k = 0; k < keys.length; k++) {
+    for (var pi = 0; pi < d.svcPtByQuality[0].length; pi++) {
+      won[k]  += (d.svcPtByQuality[0][pi] && d.svcPtByQuality[0][pi][keys[k]]) || 0;
+      lost[k] += (d.svcPtByQuality[1][pi] && d.svcPtByQuality[1][pi][keys[k]]) || 0;
+    }
+    if (won[k] + lost[k] > 0) any = true;
+  }
+  if (!any) return '';
+
+  var h = '<div class="setter-divider">Points gagnes selon la qualite du service</div>' +
+    '<div class="ctable-wrap"><table class="ctable"><thead><tr>' +
+    '<th class="lc">Qualite</th><th>Gagnes</th><th>Perdus</th><th>Echanges</th><th>% gagnes</th>' +
+    '</tr></thead><tbody>';
+  var tw = 0, tl = 0;
+  for (var k = 0; k < keys.length; k++) {
+    var tot = won[k] + lost[k];
+    if (tot === 0) continue;
+    tw += won[k]; tl += lost[k];
+    var pct = Math.round(won[k] / tot * 100);
+    h += '<tr><td class="lc">'+lbls[k]+'</td><td>'+won[k]+'</td><td>'+lost[k]+'</td><td>'+tot+'</td>' +
+         '<td class="'+(pct >= 50 ? 'ep' : 'en')+'">'+pct+'%</td></tr>';
+  }
+  var tt = tw + tl;
+  if (tt > 0) {
+    var tpct = Math.round(tw / tt * 100);
+    h += '<tr class="team-row"><td class="lc">TOTAL</td><td>'+tw+'</td><td>'+tl+'</td><td>'+tt+'</td>' +
+         '<td>'+tpct+'%</td></tr>';
+  }
+  return h + '</tbody></table></div>';
+}
+function renderPhaseBloc(d) {
+  var h = '<div class="phase-block"><div class="phase-hdr">Bloc</div><div class="ctable-wrap">' +
+    '<table class="ctable" data-sort="bloc"><thead><tr><th class="lc">Joueuse</th><th>Solo</th><th>Ast</th><th>BL+</th><th>BL-</th><th>Err</th><th>TA</th><th>+-</th></tr></thead><tbody>';
+  var tSolo=0,tAst=0,tP=0,tM=0,tErr=0,tTA=0;
+  for (var i = 0; i < d.players.length; i++) {
+    var p=d.players[i], TA=p.blSolo+p.blAssist+p.blP+p.blM+p.blErr; if(TA===0)continue;
+    var pm = p.blSolo+p.blAssist*0.5-p.blErr;
+    tSolo+=p.blSolo; tAst+=p.blAssist; tP+=p.blP; tM+=p.blM; tErr+=p.blErr; tTA+=TA;
+    h += '<tr><td class="lc">#'+PLAYERS[i].num+' '+PLAYERS[i].name+'</td>' +
+      '<td>'+p.blSolo+'</td><td>'+p.blAssist+'</td><td>'+p.blP+'</td><td>'+p.blM+'</td><td>'+p.blErr+'</td><td>'+TA+'</td>' +
+      '<td class="'+(pm>=0?'ep':'en')+'">'+(pm>=0?'+':'')+pm.toFixed(1)+'</td></tr>';
+  }
+  if (tTA > 0) {
+    var teamPm = tSolo + tAst*0.5 - tErr;
+    h += '<tr class="team-row"><td class="lc">EQUIPE</td>' +
+      '<td>'+tSolo+'</td><td>'+tAst+'</td><td>'+tP+'</td><td>'+tM+'</td><td>'+tErr+'</td><td>'+tTA+'</td>' +
+      '<td>'+(teamPm>=0?'+':'')+teamPm.toFixed(1)+'</td></tr>';
+  }
+  return h + '</tbody></table></div></div>';
+}
+
+// Same "did this player log anything" check the server uses to count sets
+// played -- needed here too for the single-set Bilan view, whose data never
+// carries a precomputed setsPlayed array (there's only one set to look at).
+function clientPlayerHasAnyStat(p) {
+  if (!p) return false;
+  var keys = ['frK','frCp','frCm','frBLE','frOut','frOtherErr','r3','r2','r1','rErr',
+              'brK','brCp','brCm','brBLE','brOut','brOtherErr','s0','s1','s2','s3','sErr',
+              'blSolo','blAssist','blP','blM','blErr'];
+  for (var i = 0; i < keys.length; i++) if (Number(p[keys[i]]) > 0) return true;
+  return false;
+}
+
+// Résumé du match / set / groupe : une ligne par joueuse avec les totaux qui
+// comptent le plus -- sets joués, service (as/erreurs), attaque (K / erreurs
+// "out" seulement, les autres fautes d'attaque ont leur propre colonne plus
+// haut) et contres (blocs qui rapportent un point : solo + assist).
+function renderMatchSummary(d) {
+  var setsPlayed = d.setsPlayed || d.players.map(function(p){ return clientPlayerHasAnyStat(p) ? 1 : 0; });
+  var rows = '', any = false;
+  var tSets=0,tAce=0,tSvcErr=0,tK=0,tAtkErr=0,tContre=0,tPts=0,tErr=0;
+  for (var i = 0; i < d.players.length; i++) {
+    var p = d.players[i];
+    var sp = setsPlayed[i] || 0;
+    var ace = p.s0||0, svcErr = p.sErr||0;
+    var k = (p.frK||0)+(p.brK||0), atkErr = (p.frOut||0)+(p.brOut||0);
+    // A block point is a full contre solo, a shared (assist) one counts half --
+    // same weighting as the +/- score in the Bloc table above, so a team can
+    // legitimately finish a match at, say, 3.5 contres.
+    var contre = (p.blSolo||0)+(p.blAssist||0)*0.5;
+    var pts = ace + k + contre;             // total points won: ace + kill + contre
+    var err = svcErr + atkErr;              // total errors: service err + attack "out" err
+    if (sp===0 && ace===0 && svcErr===0 && k===0 && atkErr===0 && contre===0) continue;
+    any = true;
+    tSets+=sp; tAce+=ace; tSvcErr+=svcErr; tK+=k; tAtkErr+=atkErr; tContre+=contre; tPts+=pts; tErr+=err;
+    rows += '<tr><td class="lc">#'+PLAYERS[i].num+' '+PLAYERS[i].name+'</td>' +
+      '<td>'+sp+'</td><td>'+ace+'</td><td>'+svcErr+'</td><td>'+k+'</td><td>'+atkErr+'</td><td>'+contre.toFixed(1)+'</td>' +
+      '<td>'+pts.toFixed(1)+'</td><td>'+err+'</td></tr>';
+  }
+  if (!any) return '';
+  rows += '<tr class="team-row"><td class="lc">EQUIPE</td>' +
+    '<td>'+tSets+'</td><td>'+tAce+'</td><td>'+tSvcErr+'</td><td>'+tK+'</td><td>'+tAtkErr+'</td><td>'+tContre.toFixed(1)+'</td>' +
+    '<td>'+tPts.toFixed(1)+'</td><td>'+tErr+'</td></tr>';
+  return '<div class="phase-block"><div class="phase-hdr">Resume</div><div class="ctable-wrap">' +
+    '<table class="ctable" data-sort="resume"><thead><tr><th class="lc">Joueuse</th><th>Sets</th><th>Ace</th><th>Err svc</th>' +
+    '<th>K</th><th>Err atq (out)</th><th>Contres</th><th>Total pts</th><th>Total err</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+}
+
+// ---- OPP ----
+function renderOpp() {
+  if (!stats) return;
+  var el = document.getElementById('opp');
+  var visible = oppVisibleCount(stats);
+  var h = currentMatchLocked ? '<div class="lock-banner">\ud83d\udd12 Match verrouille — lecture seule</div>' : '';
+  h += futureMatchWarningHtml();
+  for (var i = 0; i < visible; i++) {
+    var o = stats.opp[i], label = (stats.oppLabels&&stats.oppLabels[i]) || OPP_DEFAULT_LABELS[i] || ('Joueur '+(i+1));
+    h += '<div class="ocard"><div class="oname">'+label+'</div>';
+    var keys=['r3','r2','r1','rErr'], lbls=['3','2','1','Err'];
+    h += '<div class="stat-row cols-2">';
+    for (var ki = 0; ki < keys.length; ki++) {
+      var key=keys[ki], v=(o&&o[key])||0;
+      var lockCls = currentMatchLocked ? ' locked' : '';
+      var zeroCls = (v === 0) ? ' zero' : '';
+      h += '<div class="stat-item"><span class="slabel">'+lbls[ki]+'</span><div class="counter">';
+      h += '<button class="cbtn'+lockCls+zeroCls+'" id="mo_'+i+'_'+ki+'" data-adj-opp=-1 data-oi=' +i+ ' data-key=' +key+ ' data-ki=' +ki+ '>-</button>';
+      h += '<span class="cval'+(v>0?' nz':'')+'" id="opp_'+i+'_'+ki+'">'+v+'</span>';
+      h += '<button class="cbtn'+lockCls+'" data-adj-opp=1 data-oi=' +i+ ' data-key=' +key+ ' data-ki=' +ki+ '>+</button>';
+      h += '</div></div>';
+    }
+    h += '</div></div>';
+  }
+  if (visible < OPP_ROSTER_MAX) h += '<button class="add-player-btn" id="btnAddOppPlayer">+ Ajouter un joueur</button>';
+  el.innerHTML = h;
+}
+var pendingOppWrites = {};
+function adjOpp(oi, key, ki, delta) {
+  var el = document.getElementById('opp_'+oi+'_'+ki); if (!el) return;
+  try {
+    if (OPP_AUTO.hasOwnProperty(key)) {
+      // A botched reception ends the rally there — no question to ask, and a
+      // correction takes the awarded point back.
+      sendOppPoint(oi, OPP_AUTO[key], currentMatchId, currentSet, delta > 0 ? 1 : -1);
+      clearPendingPoint();
+    } else if (delta > 0) {
+      var lbl = (stats && stats.oppLabels && stats.oppLabels[oi]) || OPP_DEFAULT_LABELS[oi] || ('Joueur '+(oi+1));
+      setPendingPoint('opp', oi, lbl, key);
+    }
+  } catch(e) {}
+  var minusId = 'mo_'+oi+'_'+ki;
+  var cur=parseInt(el.textContent)||0, opt=Math.max(0,cur+delta);
+  refreshCounterVisual(el, minusId, opt, true);
+  if(stats&&stats.opp[oi]) stats.opp[oi][key]=opt;
+
+  var matchAtTap = currentMatchId, setAtTap = currentSet;
+  var cellKey = oi+'_'+key;
+  var pw = pendingOppWrites[cellKey];
+  if (!pw) { pw = pendingOppWrites[cellKey] = { baseVal: cur }; }
+  if (pw.timer) clearTimeout(pw.timer);
+
+  pw.timer = setTimeout(function() {
+    var netDelta = opt - pw.baseVal;
+    delete pendingOppWrites[cellKey];
+    if (netDelta === 0) return;
+    sendOppStatWrite(matchAtTap, setAtTap, oi, key, netDelta, el, setAtTap, 0, minusId);
+  }, 400);
+}
+
+function sendOppStatWrite(matchId, setNum, oi, key, netDelta, el, setAtTap, attempt, minusId) {
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if(r&&r.ok){
+        el.classList.remove('unsaved');
+        noteLocalWrite(matchId, setNum);
+        if (matchId === currentMatchId && !setProgress[setAtTap]) {
+          setProgress[setAtTap] = true;
+          document.querySelectorAll('.set-btn[data-set="'+setAtTap+'"]').forEach(function(b){ b.classList.add('has-data'); });
+        }
+        // Switched set or match while this was in flight: r.val belongs to
+        // the old set and must not land in the numbers now on screen.
+        if (matchId !== currentMatchId || setNum !== currentSet) return;
+        refreshCounterVisual(el, minusId, r.val, false);
+        if(stats&&stats.opp[oi])stats.opp[oi][key]=r.val;
+      }
+      else showToast(r && r.locked ? 'Match verrouille' : 'Erreur');
+    })
+    .withFailureHandler(function(e) {
+      if (attempt < 2) {
+        setTimeout(function() { sendOppStatWrite(matchId, setNum, oi, key, netDelta, el, setAtTap, attempt+1, minusId); }, 1200 * (attempt+1));
+      } else {
+        el.classList.add('unsaved');
+        showToast('Non enregistre — reseau instable');
+      }
+    })
+    .adjustOppStat(matchId, setNum, oi, key, netDelta);
+}
+
+// ---- CONFIG ----
+function renderCfg() {
+  var el = document.getElementById('cfg');
+  var st = stats || {setters:['Passeure A','Passeure B','Passeure C'],oppLabels:[]};
+
+  // Section order reflects how often each is touched during a match:
+  // opponent roster changes per game, matches occasionally, setters rarely.
+  var h = cfgOpponentSection(st) + cfgMatchesSection() + cfgSettersSection(st);
+  h += '<div style="text-align:center;color:#ccc;font-size:10px;margin-top:24px">Version: '+APP_VERSION+'</div>';
+  el.innerHTML = h;
+}
+
+function cfgOpponentSection(st) {
+  // Opponent names are stored per match, so the header names the match to
+  // avoid the impression that this is a global roster.
+  var m = matchesCache.filter(function(x){ return x.id === currentMatchId; })[0];
+  var mname = m ? m.name : 'match courant';
+  var h = '<div class="sec-title">Joueuses adverses</div>';
+  h += '<div class="scope-note">Ces noms s\'appliquent uniquement au match&nbsp;: <b>' + mname + '</b>' +
+       '<br>Changer de match en haut de l\'ecran pour en modifier un autre.</div>';
+  var visible = oppVisibleCount(st);
+  for (var i = 0; i < visible; i++) {
+    var lv = (st.oppLabels&&st.oppLabels[i]) || OPP_DEFAULT_LABELS[i] || '';
+    h += '<div class="ocard" style="padding:7px 12px;margin-bottom:5px">' +
+         '<div class="field-row" style="margin:0">' +
+         '<span class="field-lbl" style="min-width:60px;font-size:11px">Joueur '+(i+1)+'</span>' +
+         '<input class="field-input" id="cfgOL_'+i+'" value="'+lv+'"/></div></div>';
+  }
+  if (visible < OPP_ROSTER_MAX) h += '<button class="add-player-btn" id="btnAddOppPlayer">+ Ajouter un joueur</button>';
+  h += '<br><button class="save-btn" id="btnSaveOppLabels">Enregistrer noms</button>';
+  return h;
+}
+
+function cfgMatchesSection() {
+  var h = '<div class="sec-title">Matchs</div>';
+  var missingCount = countMissingLeagueMatches();
+  if (missingCount > 0) {
+    h += '<button class="save-btn" id="btnSeedLeague" style="width:100%;margin-bottom:8px">Importer '+missingCount+' match(s) manquant(s) du calendrier</button>';
+  }
+  matchesCache.forEach(function(m, idx) {
+    var isEdit = editOpenId === m.id;
+    var isConfirm = deleteArmed === m.id;
+    h += '<div class="cfg-match-item">';
+    h += '<div class="cfg-match-top">';
+    h += '<button class="cfg-icon-btn" data-move-up="'+m.id+'"'+(idx===0?' disabled style="opacity:.3"':'')+'>&uarr;</button>';
+    h += '<button class="cfg-icon-btn" data-move-down="'+m.id+'"'+(idx===matchesCache.length-1?' disabled style="opacity:.3"':'')+'>&darr;</button>';
+    h += '<div class="cfg-match-name">'+m.name+(m.group?' <span class="cfg-group-badge">'+m.group+'</span>':'')+'</div>';
+    h += '<button class="cfg-icon-btn'+(m.locked?' locked-icon':'')+'" data-toggle-lock="'+m.id+'">'+(m.locked?'\ud83d\udd12':'\ud83d\udd13')+'</button>';
+    h += '<button class="cfg-icon-btn" data-edit-match="'+m.id+'">&#9998;</button>';
+    if (isConfirm) {
+      h += '<button class="cfg-icon-btn cancel-btn" data-cancel-delete="'+m.id+'">&#10005;</button>';
+      h += '<button class="cfg-icon-btn confirm-btn" data-confirm-delete="'+m.id+'">&#10003;</button>';
+    } else {
+      h += '<button class="cfg-icon-btn danger" data-del-match="'+m.id+'">&#128465;</button>';
+    }
+    h += '</div>';
+    h += '<div class="cfg-match-edit'+(isEdit?' open':'')+'">';
+    h += '<input class="field-input" id="editName_'+m.id+'" placeholder="Nom du match" value="'+m.name+'"/>';
+    h += '<div class="group-picker-label">Groupe</div><div class="group-picker">';
+    h += '<button class="group-chip'+(!m.group?' active':'')+'" data-pick-group="" data-pick-group-target="'+m.id+'">Aucun</button>';
+    MATCH_GROUPS.forEach(function(g) {
+      h += '<button class="group-chip'+(m.group===g?' active':'')+'" data-pick-group="'+g+'" data-pick-group-target="'+m.id+'">'+g+'</button>';
+    });
+    h += '</div>';
+    h += '<input type="hidden" id="editGroup_'+m.id+'" value="'+(m.group||'')+'"/>';
+    h += '<button class="save-btn" data-save-edit="'+m.id+'">Enregistrer</button>';
+    h += '</div>';
+    h += '</div>';
+  });
+  h += '<div class="cfg-new-match">';
+  h += '<div class="field-row"><span class="field-lbl">Nom</span><input class="field-input" id="newMatchName" value="'+todayMatchPrefix()+'" placeholder="ex: 5 mars vs Rivals"/></div>';
+  h += '<button class="save-btn" id="btnCreateMatch" style="width:100%">+ Nouveau match</button>';
+  h += '</div>';
+  return h;
+}
+
+function cfgSettersSection(st) {
+  var abc = ['A','B','C'];
+  var h = '<div class="sec-title">Passeures</div><div class="ocard">';
+  for (var i = 0; i < 3; i++)
+    h += '<div class="field-row"><span class="field-lbl">Passeure '+abc[i]+'</span>' +
+         '<input class="field-input" id="cfgS'+i+'" value="'+(st.setters[i]||('Passeure '+abc[i]))+'"/></div>';
+  h += '<button class="save-btn" id="btnSaveSetters">Enregistrer</button></div>';
+  return h;
+}
+
+function toggleEditMatch(id) {
+  editOpenId = (editOpenId === id) ? null : id;
+  deleteArmed = null;
+  renderCfg();
+}
+function saveEditMatch(id) {
+  var nameInp = document.getElementById('editName_'+id);
+  var groupInp = document.getElementById('editGroup_'+id);
+  var newName = nameInp ? nameInp.value.trim() : '';
+  var newGroup = groupInp ? groupInp.value.trim() : '';
+  if (!newName) { showToast('Nom vide'); return; }
+  showLoading();
+  google.script.run
+    .withSuccessHandler(function(r) {
+      editOpenId = null;
+      groupsCache = null;
+      groupDataCache = {};
+      // Only refetch the list when the server actually reordered it. A group
+      // change or a same-date edit leaves the order untouched, so patching
+      // locally avoids reopening every match sheet.
+      if (r && r.reordered) {
+        loadMatches(function() {
+          hideLoading();
+          if (id === currentMatchId) updateMatchBtnLabel();
+          renderCfg();
+          showToast('Enregistre!');
+        });
+        return;
+      }
+      var m = matchesCache.filter(function(x){ return x.id === id; })[0];
+      if (m) { m.name = newName; m.group = newGroup; }
+      hideLoading();
+      if (id === currentMatchId) updateMatchBtnLabel();
+      renderCfg();
+      showToast('Enregistre!');
+    })
+    .withFailureHandler(function(e) { hideLoading(); showToast('Erreur: '+e.message); })
+    .renameMatch(id, newName, newGroup);
+}
+function toggleMatchLock(id) {
+  var m = matchesCache.filter(function(x){return x.id===id;})[0];
+  if (!m) return;
+  var newLocked = !m.locked;
+  showLoading();
+  google.script.run
+    .withSuccessHandler(function(r) {
+      hideLoading();
+      m.locked = r.locked;
+      if (id === currentMatchId) {
+        currentMatchLocked = r.locked;
+        updateMatchBtnLabel();
+        renderAll();
+      }
+      renderCfg();
+      showToast(r.locked ? 'Match verrouille' : 'Match deverrouille');
+    })
+    .withFailureHandler(function(e) { hideLoading(); showToast('Erreur: '+e.message); })
+    .setMatchLock(id, newLocked);
+}
+function moveMatch(id, dir) {
+  var idx = matchesCache.findIndex(function(m){return m.id===id;});
+  if (idx < 0) return;
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= matchesCache.length) return;
+  var tmp = matchesCache[idx];
+  matchesCache[idx] = matchesCache[newIdx];
+  matchesCache[newIdx] = tmp;
+  renderCfg();
+  var ids = matchesCache.map(function(m){return m.id;});
+  google.script.run
+    .withFailureHandler(function(e) { showToast('Erreur ordre: '+e.message); })
+    .reorderMatches(ids);
+}
+function handleDeleteClick(id) {
+  deleteArmed = id;
+  renderCfg();
+}
+function confirmDeleteMatch(id) {
+  deleteArmed = null;
+  var wasCurrent = (id === currentMatchId);
+  showLoading();
+  google.script.run
+    .withSuccessHandler(function() {
+      hideLoading();
+      matchesCache = matchesCache.filter(function(m){return m.id!==id;});
+      if (wasCurrent) {
+        currentMatchId = matchesCache.length ? matchesCache[0].id : null;
+        // The Bilan caches belonged to the deleted match.
+        clearBilanCaches();
+        if (currentMatchId) { updateMatchBtnLabel(); loadStats(); }
+        else {
+          // No match left at all: the old stat screen must not linger on
+          // screen looking tappable -- a stray tap here used to file into a
+          // sheet literally named "null - Set 1" since there was nothing
+          // left to attach it to.
+          stats = null;
+          STAT_TABS.forEach(function(t){ var el = document.getElementById(t); if (el) el.innerHTML = ''; });
+          updateMatchBtnLabel();
+        }
+      }
+      renderCfg();
+      showToast('Match supprime');
+    })
+    .withFailureHandler(function(e) { hideLoading(); showToast('Erreur: '+e.message); })
+    .deleteMatch(id);
+}
+function createMatchFromConfig() {
+  var nameInp = document.getElementById('newMatchName');
+  var name = nameInp.value.trim();
+  if (!name) { showToast('Entrez un nom de match'); return; }
+  showLoading();
+  google.script.run
+    .withSuccessHandler(function(m) {
+      // Reload rather than push locally: the server slots the new match into
+      // its chronological position, so our local order would be wrong.
+      loadMatches(function(){ hideLoading(); showToast('Match cree!'); renderCfg(); });
+    })
+    .withFailureHandler(function(e) { hideLoading(); showToast('Erreur: '+e.message); })
+    .createMatch(name);
+}
+// Compares LEAGUE_SCHEDULE against already-loaded matchesCache — no server
+// call needed, so the button can hide itself the moment everything's imported.
+function countMissingLeagueMatches() {
+  var existing = {};
+  matchesCache.forEach(function(m) { existing[m.name] = true; });
+  var missing = 0;
+  LEAGUE_SCHEDULE.forEach(function(name) { if (!existing[name]) missing++; });
+  return missing;
+}
+function seedLeague() {
+  showLoading();
+  google.script.run
+    .withSuccessHandler(function(r) {
+      hideLoading();
+      showToast(r.added + ' match(s) ajoute(s) sur ' + r.total);
+      loadMatches(function(){ renderCfg(); });
+    })
+    .withFailureHandler(function(e) { hideLoading(); showToast('Erreur: '+e.message); })
+    .seedLeagueMatches();
+}
+
+function saveCfgSetters() {
+  var names = [];
+  for (var i=0;i<3;i++){var inp=document.getElementById('cfgS'+i);names.push(inp?inp.value:('Passeure '+(i+1)));}
+  showLoading();
+  google.script.run
+    .withSuccessHandler(function(){
+      hideLoading();
+      if(stats)stats.setters=names;
+      staleTabs.atqCombo = false;
+      renderPlayerTab('atqCombo');
+      showToast('Enregistre!');
+    })
+    .withFailureHandler(function(e){hideLoading();showToast('Erreur: '+(e&&e.message?e.message:e));})
+    .saveSetterNames(names);
+}
+function saveCfgOppLabels() {
+  var visible = oppVisibleCount(stats);
+  var labels = (stats && stats.oppLabels) ? stats.oppLabels.slice() : [];
+  while (labels.length < 15) labels.push('');
+  for(var i=0;i<visible;i++){var inp=document.getElementById('cfgOL_'+i);if(inp)labels[i]=inp.value;}
+  showLoading();
+  google.script.run
+    .withSuccessHandler(function(){hideLoading();if(stats)stats.oppLabels=labels;showToast('Enregistre!');})
+    .withFailureHandler(function(e){hideLoading();showToast('Erreur: '+(e&&e.message?e.message:e));})
+    .saveOppLabels(currentMatchId, labels);
+}
+function showToast(msg) {
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2000);
+}
+
+function updateTabbarOffset() {
+  var hdr = document.getElementById('hdr');
+  var tabbar = document.querySelector('.tabbar');
+  if (!hdr || !tabbar) return;
+  tabbar.style.top = hdr.offsetHeight + 'px';
+  // Context selectors stick just below the header + tab bar. Both are sticky
+  // with heights that change (the set bar hides on Bilan), so the offset is
+  // published as a CSS variable rather than hard-coded.
+  document.documentElement.style.setProperty(
+    '--stickyTop', (hdr.offsetHeight + tabbar.offsetHeight) + 'px');
+}
+window.addEventListener('resize', updateTabbarOffset);
+
+function bootstrap() {
+  try {
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (!r || !r.matches) { loadMatches(); return; }
+        if (!r.matches.length) { onMatchesLoaded([]); return; }
+        matchesCache      = r.matches;
+        currentMatchId    = r.matchId;
+        knownDataVersion  = r.dataVersion;
+        setProgress       = r.setProgress || {};
+        stats             = r.stats;
+        firstLoadDone     = true;
+        updateCurrentMatchLocked();
+        updateMatchBtnLabel();
+        updateHeaderSetBar();
+        renderAll();
+        updateTabbarOffset();
+        maybePromptTodayMatch();
+        startSetSync();
+      })
+      .withFailureHandler(function(e) { firstLoadDone = true; onStatsError(e); })
+      .initialLoad(null);
+  } catch(e) {
+    loadMatches(); // older server without initialLoad
+  }
+}
+
+window.onload = function() {
+  bootstrap();
+  updateTabbarOffset();
+};
 </script>
 </body>
 </html>
